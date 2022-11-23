@@ -344,29 +344,36 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				for (int i = 0; i < m_numCanais; i++)
 					m_wndGraficoCanal[i].ShowWindow(SW_SHOW);
 
-				viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
+				//Ajusta as escalas dos canais 1 e 2
+				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");
+				viPrintf(m_vi, ":CHANnel1:POSition 0\n");
 
+				viPrintf(m_vi, ":CHANnel2:SCALe 50e-3\n");
+				viPrintf(m_vi, ":CHANnel2:POSition 0\n");
+
+				//Ajusta a base de tempo horizontal
+				viPrintf(m_vi, ":TIMEbase:SCALe 200E-3\n");
+
+				//Ajusta a saída do gerador de sinais 1
+				viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion RAMP\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion:RAMP:SYMMetry 50\n");
 				viPrintf(m_vi, ":SOURce1:VOLTage 800E-3\n");
 				viPrintf(m_vi, ":SOURce1:VOLTage:OFFSet 300E-3\n");
 				viPrintf(m_vi, ":SOURce1:FREQuency 2\n");
-
 				viPrintf(m_vi, ":OUTPut1:IMPedance OMEG\n");
+				
+				//Ajusta a saída do gerador de sinais 2
+				viPrintf(m_vi, ":SOURce2:TYPE NONE\n");
+				viPrintf(m_vi, ":SOURce2:FUNCtion DC\n");
+				viPrintf(m_vi, ":SOURce2:VOLTage:OFFSet 100E-3\n");
+				viPrintf(m_vi, ":OUTPut2:IMPedance OMEG\n");
+
+				//Liga os geradores
 				viPrintf(m_vi, ":OUTPut1:STATe ON\n");
-
-				viPrintf(m_vi, ":OUTPut2:STATe OFF\n");
+				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
 	
-				//Alterar a aquisição para modo single shot
-				//Inicializar número de pontos (=Ng)
-				//Inicializar período de amostragem (=DeltaTg2)
-				//Abrir o arquivo de dados
-				//Inicializar Vg = Vgi
-				//Sleep DeltaTg1
-				//Inicializar Vsd = Vsdi
-				//Sleep DeltaTsd1
-
-
+				//Ativa o timer
 				SetTimer(ID_TIMER_FCC, 550, NULL);
 			}
 		}
@@ -375,6 +382,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 	{
 		KillTimer(ID_TIMER_FCC);
 
+		//Desliga os geradores de sinais
 		viPrintf(m_vi, ":OUTPut1:STATe OFF\n");
 		viPrintf(m_vi, ":OUTPut2:STATe OFF\n");
 
@@ -401,30 +409,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 		for(int i=1; i<=m_numCanais; i++)
 			leDadosCanal(i);
 		break;
-
-	
-
-		//Disparar uma aquisição
-
-		//Medir canal 1 (=Vg)
-		//Calcular média (Vg_barra) e armazenar
-		//Medir canal 2 (=Ig)
-		//Calcular média (Ig_barra) e armazenar
-
-		//Ajustar Vsd += DeltaVsd
-		//Se Vsd <= Vsdf break
-
-		//Ajustar Vsd = Vsdi
-		//Ajustar Vg += DeltaVg
-		//Se Vg <= Vgf break
-
-		//Desativar o timer
-		//Desativar as fontes
-		//Encerrar a aquisição
-		//Fechar o arquivo de dados
-
 	default:
-
 		break;
 	}
 
