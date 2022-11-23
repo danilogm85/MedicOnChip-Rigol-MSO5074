@@ -8,7 +8,7 @@
 #include "JanelaDoGrafico.h"
 #include "FCCParametersDlg.h"
 
-#define MAX_CANAIS			4
+//#define MAX_CANAIS			4
 
 #define ID_TIMER_ADQUIRIR	1
 #define ID_TIMER_FCC		2
@@ -49,9 +49,10 @@ public:
 protected:
 	//Gráficos da interface principal
 	unsigned int m_numCanais;
-	CJanelaDoGrafico m_wndGraficoCanal[MAX_CANAIS];
+	CJanelaDoGrafico* m_wndGraficoCanal;	//m_wndGraficoCanal[MAX_CANAIS];
 	BOOL m_bAquisicaoAtiva;
-	ViSession m_defaultRM, m_vi;
+	ViSession m_defaultRM;
+	ViSession m_vi;
 	ViChar m_buffer[VI_FIND_BUFLEN];
 	ViRsrc m_matches = m_buffer;
 	ViUInt32 m_nmatches;

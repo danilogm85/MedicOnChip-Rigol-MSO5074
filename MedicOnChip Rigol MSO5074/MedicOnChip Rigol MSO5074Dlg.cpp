@@ -57,6 +57,7 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	, m_bAquisicaoAtiva(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	m_wndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
 }
 
 
@@ -64,6 +65,8 @@ CMedicOnChipRigolMSO5074Dlg::~CMedicOnChipRigolMSO5074Dlg()
 {
 	if (m_bAquisicaoAtiva)
 		encerrarAquisicao();
+
+	delete[] m_wndGraficoCanal;
 }
 
 void CMedicOnChipRigolMSO5074Dlg::DoDataExchange(CDataExchange* pDX)
@@ -329,7 +332,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir()
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 {
 	// TODO: Add your control notification handler code here
-/*
+
 	if (!m_bAquisicaoAtiva)
 	{
 		if (m_FCCParametersDlg.DoModal() == IDOK) {
@@ -369,7 +372,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("FCC"));
 	}
-*/
 }
 
 
@@ -452,7 +454,6 @@ bool CMedicOnChipRigolMSO5074Dlg::iniciarAquisicao()
 	m_bAquisicaoAtiva = TRUE;
 
 	return true;
-
 }
 
 
