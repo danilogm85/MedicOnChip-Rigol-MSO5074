@@ -174,7 +174,7 @@ void CJanelaDoGrafico::OnPaint()
 	case TIPO_GRAFICO_DE_TEMPO:
 		//Pinta os rótulos verticais
 		for (i = 0; i < m_numRotulosVert; i++){
-			str.Format(_T("%0.3f"), 1 / m_multVertical * (2 - i) * m_Ymax / 2);
+			str.Format(_T("%0.2f"), 1 / m_multVertical * (2 - i) * m_Ymax / 2);
 			m_pRotulosVerticais[i].SetWindowTextW(str);
 		}
 		
