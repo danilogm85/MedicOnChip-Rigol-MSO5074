@@ -304,7 +304,15 @@ BOOL CJanelaDoGrafico::ajustaEscalas(float Xmax, float Ymax)
 	return TRUE;
 }
 
+float  CJanelaDoGrafico::getAt(const int pos)
+{
+	return static_cast<CGraficoDeTempo*>(m_pWndGrafico)->getAt(pos);
+}
 
+int CJanelaDoGrafico::getTamVetorDeDados()
+{
+	return static_cast<CGraficoDeTempo*>(m_pWndGrafico)->getTamVetorDeDados();
+}
 
 
 

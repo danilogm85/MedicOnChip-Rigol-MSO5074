@@ -4,7 +4,7 @@
 
 #define MAX_SCROLL_POS 100
 
-#define TIPO_GRAFICO_DE_TEMPO		1
+#define TIPO_GRAFICO_DE_TEMPO	1
 
 
 // CJanelaDoGrafico
@@ -20,6 +20,8 @@ public:
 	void plotaGrafico(const float* pDados, const int tam);
 	void limpaGrafico();
 	BOOL ajustaEscalas(float xMax, float yMax);
+	int getTamVetorDeDados();
+	float getAt(const int);
 
 private:
 	CWnd* m_pWndGrafico;

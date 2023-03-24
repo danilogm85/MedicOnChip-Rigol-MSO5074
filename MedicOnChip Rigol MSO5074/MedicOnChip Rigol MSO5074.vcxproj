@@ -93,13 +93,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Program Files\IVI Foundation\VISA\Win64\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\IVI Foundation\VISA\WinNT\Include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>visa32.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\Program Files\IVI Foundation\VISA\Win64\Lib_x64\msc</AdditionalLibraryDirectories>
+      <AdditionalDependencies>visa64.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\IVI Foundation\VISA\WinNT\Lib_x64\msc</AdditionalLibraryDirectories>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -188,6 +188,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="FCCParametersDlg.h" />
+    <ClInclude Include="FCSParametersDlg.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Grafico.h" />
     <ClInclude Include="GraficoDeTempo.h" />
@@ -197,9 +198,11 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TestHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FCCParametersDlg.cpp" />
+    <ClCompile Include="FCSParametersDlg.cpp" />
     <ClCompile Include="Grafico.cpp" />
     <ClCompile Include="GraficoDeTempo.cpp" />
     <ClCompile Include="JanelaDoGrafico.cpp" />
@@ -211,6 +214,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TestHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MedicOnChipRigolMSO5074.rc" />

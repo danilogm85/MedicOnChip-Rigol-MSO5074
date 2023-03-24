@@ -22,6 +22,7 @@ public:
 	BOOL ajustaEscalaVertical(float);
 	void ajustaMultVertical(float);
 	int getTamVetorDeDados();
+	float getAt(const int);
 
 protected:
 	virtual BOOL PreCreateWindow(CREATESTRUCT& cs);

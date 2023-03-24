@@ -4,13 +4,13 @@
 
 // FCCParametersDlg dialog
 
-class FCCParametersDlg : public CDialogEx
+class CFCCParametersDlg : public CDialogEx
 {
-	DECLARE_DYNAMIC(FCCParametersDlg)
+	DECLARE_DYNAMIC(CFCCParametersDlg)
 
 public:
-	FCCParametersDlg(CWnd* pParent = nullptr);   // standard constructor
-	virtual ~FCCParametersDlg();
+	CFCCParametersDlg(CWnd* pParent = nullptr);   // standard constructor
+	virtual ~CFCCParametersDlg();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

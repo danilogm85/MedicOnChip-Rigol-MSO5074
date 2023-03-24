@@ -7,11 +7,11 @@
 #include "FCCParametersDlg.h"
 
 
-// FCCParametersDlg dialog
+// CFCCParametersDlg dialog
 
-IMPLEMENT_DYNAMIC(FCCParametersDlg, CDialogEx)
+IMPLEMENT_DYNAMIC(CFCCParametersDlg, CDialogEx)
 
-FCCParametersDlg::FCCParametersDlg(CWnd* pParent /*=nullptr*/)
+CFCCParametersDlg::CFCCParametersDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DIALOG_FCC, pParent)
 	, m_Vgi (0)
 	, m_Vgf (0)
@@ -29,11 +29,11 @@ FCCParametersDlg::FCCParametersDlg(CWnd* pParent /*=nullptr*/)
 
 }
 
-FCCParametersDlg::~FCCParametersDlg()
+CFCCParametersDlg::~CFCCParametersDlg()
 {
 }
 
-void FCCParametersDlg::DoDataExchange(CDataExchange* pDX)
+void CFCCParametersDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 
@@ -64,7 +64,7 @@ void FCCParametersDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 
-BEGIN_MESSAGE_MAP(FCCParametersDlg, CDialogEx)
+BEGIN_MESSAGE_MAP(CFCCParametersDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 

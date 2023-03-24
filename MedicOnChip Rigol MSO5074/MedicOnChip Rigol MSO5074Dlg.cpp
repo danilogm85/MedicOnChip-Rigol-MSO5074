@@ -7,6 +7,8 @@
 #include "MedicOnChip Rigol MSO5074.h"
 #include "MedicOnChip Rigol MSO5074Dlg.h"
 #include "afxdialogex.h"
+#include "TestHandler.h"
+#include <iostream>
 //#define _USE_MATH_DEFINES
 //#include <math.h>
 
@@ -57,7 +59,7 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	, m_bAquisicaoAtiva(FALSE)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-	m_wndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
+	m_pwndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
 }
 
 
@@ -66,7 +68,7 @@ CMedicOnChipRigolMSO5074Dlg::~CMedicOnChipRigolMSO5074Dlg()
 	if (m_bAquisicaoAtiva)
 		encerrarAquisicao();
 
-	delete[] m_wndGraficoCanal;
+	delete[] m_pwndGraficoCanal;
 }
 
 void CMedicOnChipRigolMSO5074Dlg::DoDataExchange(CDataExchange* pDX)
@@ -87,6 +89,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ADQUIRIR, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_FCC, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC)
+	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)
 END_MESSAGE_MAP()
 
 
@@ -136,6 +139,7 @@ BOOL CMedicOnChipRigolMSO5074Dlg::OnInitDialog()
 	m_combox.AddString(_T(":SOURce2:FUNCtion?"));
 	m_combox.AddString(_T(":WAVeform:FORMat?"));
 	m_combox.AddString(_T(":WAVeform:POINts?"));
+	m_combox.AddString(_T(":TRIGger:STATus?"));
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -198,7 +202,7 @@ int CMedicOnChipRigolMSO5074Dlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	// TODO:  Add your specialized creation code here
 	//Cria os gráficos dos canais
 	for (int i = 0; i<m_numCanais; i++)
-		m_wndGraficoCanal[i].Create(NULL, NULL, WS_CHILD | WS_CLIPSIBLINGS, CRect(0, 0, 0, 0), this, NULL, NULL);
+		m_pwndGraficoCanal[i].Create(NULL, NULL, WS_CHILD | WS_CLIPSIBLINGS, CRect(0, 0, 0, 0), this, NULL, NULL);
 
 	return 0;
 }
@@ -215,14 +219,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnSize(UINT nType, int cx, int cy)
 	float alt = ((float) cy - (m_numCanais + 1) * resVert) / m_numCanais;
 
 	for (int i = 0; i < m_numCanais; i++) {
-		m_wndGraficoCanal[i].MoveWindow(
+		m_pwndGraficoCanal[i].MoveWindow(
 			80 * resHorz,
 			resVert + i*(alt+resVert),
 			119 * resHorz,
 			alt
 			);
 	}
-
 }
 
 // Trata o botão "Perguntar"
@@ -306,9 +309,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir()
 			GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
 			GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
 			GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
 			GetDlgItem(IDC_BUTTON_ADQUIRIR)->SetWindowText(_T("Encerrar"));
 			for (int i=0; i<m_numCanais; i++)
-				m_wndGraficoCanal[i].ShowWindow(SW_SHOW);
+				m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 			SetTimer(ID_TIMER_ADQUIRIR, 550, NULL);
 		}
 	}
@@ -317,12 +321,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir()
 		KillTimer(ID_TIMER_ADQUIRIR);
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
-			m_wndGraficoCanal[i].ShowWindow(SW_HIDE);
-			m_wndGraficoCanal[i].limpaGrafico();
+			m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+			m_pwndGraficoCanal[i].limpaGrafico();
 		}
 		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_ADQUIRIR)->SetWindowText(_T("Adquirir"));
 	}
 }
@@ -340,10 +345,42 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("Encerrar"));
-				for (int i = 0; i < m_numCanais; i++)
-					m_wndGraficoCanal[i].ShowWindow(SW_SHOW);
 
+
+
+				for (int i = 0; i < m_numCanais; i++)
+					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
+
+				TestHandler tester;
+				FCC_parameters results;
+				results = tester.get_fcc_parameters();
+
+				std::string parameters_log;
+
+				parameters_log = "Parametros do FCC:\n";
+				parameters_log = parameters_log + "Canal 1 (Vds) - Tipo: " + results.vds_source_params.wave_type;
+				parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.v_pp) + "Vpp, Offset de " + std::to_string(results.vds_source_params.v_offset);
+				parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.freq) + " Hz";
+
+				UpdateData(TRUE);
+				m_receive = parameters_log.c_str();
+				UpdateData(FALSE);
+				/*
+
+				std::cout << results.vds_source_params.v_pp << std::endl;
+				std::cout << results.vds_source_params.freq << std::endl;
+				std::cout << results.vds_source_params.v_offset << std::endl;
+				std::cout << results.vds_source_params.Id << std::endl;
+				std::cout << results.vds_source_params.wave_type << std::endl;
+
+				std::cout << results.vg_source_params.v_pp << std::endl;
+				std::cout << results.vg_source_params.freq << std::endl;
+				std::cout << results.vg_source_params.v_offset << std::endl;
+				std::cout << results.vg_source_params.Id << std::endl;
+				std::cout << results.vg_source_params.wave_type << std::endl;  */
+/*
 				//Ajusta as escalas dos canais 1 e 2
 				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");
 				viPrintf(m_vi, ":CHANnel1:POSition 0\n");
@@ -372,7 +409,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//Liga os geradores
 				viPrintf(m_vi, ":OUTPut1:STATe ON\n");
 				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
-	
+*/	
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCC, 550, NULL);
 			}
@@ -381,6 +418,100 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 	else
 	{
 		KillTimer(ID_TIMER_FCC);
+/*
+		//Desliga os geradores de sinais
+		viPrintf(m_vi, ":OUTPut1:STATe OFF\n");
+		viPrintf(m_vi, ":OUTPut2:STATe OFF\n");
+*/
+		encerrarAquisicao();
+		for (int i = 0; i < m_numCanais; i++) {
+			m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+			m_pwndGraficoCanal[i].limpaGrafico();
+		}
+		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("FCC"));
+	}
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
+{
+	char temp[256];
+
+	// TODO: Add your control notification handler code here
+	if (!m_bAquisicaoAtiva)
+	{
+		if (m_FCSParametersDlg.DoModal() == IDOK)
+		{
+			if (iniciarAquisicao()) {
+				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS)->SetWindowText(_T("Encerrar"));
+
+				//Ajusta a escala do canal 1 (Vsd)
+				sprintf_s(temp, 256, ":CHANnel1:SCALe %.0e\n", fabs(m_FCSParametersDlg.m_Vsd) / 3);
+				viPrintf(m_vi, temp);
+				viPrintf(m_vi, ":CHANnel1:POSition 0\n");
+
+				//Ajusta a escala do canal 2 (Vg)
+				sprintf_s(temp, 256, ":CHANnel2:SCALe %.0e\n", m_FCSParametersDlg.m_Vgmax / 3);
+				viPrintf(m_vi, temp);
+				viPrintf(m_vi, ":CHANnel2:POSition 0\n");
+
+				//Ajusta a base de tempo horizontal
+				sprintf_s(temp, 256, ":TIMEbase:SCALe %.0e\n", 0.5 * 1 / m_FCSParametersDlg.m_Vgfreq);
+				viPrintf(m_vi, temp);
+
+				//Ajusta a saída do gerador de sinais 1 (Vsd)
+				viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
+				viPrintf(m_vi, ":SOURce1:FUNCtion DC\n");
+				sprintf_s(temp, 256, ":SOURce1:VOLTage:OFFSet %f\n", m_FCSParametersDlg.m_Vsd);
+				viPrintf(m_vi, temp);
+				viPrintf(m_vi, ":OUTPut1:IMPedance OMEG\n");
+
+				//Ajusta a saída do gerador de sinais 2 (Vg)
+				viPrintf(m_vi, ":SOURce2:TYPE NONE\n");
+				viPrintf(m_vi, ":SOURce2:FUNCtion RAMP\n");
+				viPrintf(m_vi, ":SOURce2:FUNCtion:RAMP:SYMMetry 50\n");
+				sprintf_s(temp, 256, ":SOURce2:VOLTage %f\n", 
+					m_FCSParametersDlg.m_Vgmax - m_FCSParametersDlg.m_Vgmin);
+				viPrintf(m_vi, temp);
+				sprintf_s(temp, 256, ":SOURce2:FREQuency %f\n",	
+					m_FCSParametersDlg.m_Vgfreq);
+				viPrintf(m_vi, temp);
+				sprintf_s(temp, 256, ":SOURce2:VOLTage:OFFSet %f\n",
+					(m_FCSParametersDlg.m_Vgmax + m_FCSParametersDlg.m_Vgmin) / 2);
+				viPrintf(m_vi, temp);
+				viPrintf(m_vi, ":OUTPut2:IMPedance OMEG\n");
+
+				//Ajusta o trigger
+				viPrintf(m_vi, ":TRIGger:EDGE:SOURce CHANnel2\n");
+				viPrintf(m_vi, ":TRIGger:EDGE:SLOPe POSitive\n");
+				sprintf_s(temp, 256, ":TRIGger:EDGE:LEVel %f\n",
+					(m_FCSParametersDlg.m_Vgmax + m_FCSParametersDlg.m_Vgmin) / 2);
+				viPrintf(m_vi, temp);
+
+				//Liga os geradores
+				viPrintf(m_vi, ":OUTPut1:STATe ON\n");
+				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
+
+				//Mostra os gráficos
+				for (int i = 0; i < m_numCanais; i++)
+					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
+
+				//Ativa o timer
+				SetTimer(ID_TIMER_FCS, 1000, NULL);
+			}
+		}
+	}
+	else
+	{
+		KillTimer(ID_TIMER_FCS);
 
 		//Desliga os geradores de sinais
 		viPrintf(m_vi, ":OUTPut1:STATe OFF\n");
@@ -388,13 +519,15 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
-			m_wndGraficoCanal[i].ShowWindow(SW_HIDE);
-			m_wndGraficoCanal[i].limpaGrafico();
+			m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+			m_pwndGraficoCanal[i].limpaGrafico();
 		}
+
 		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
-		GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("FCC"));
+		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS)->SetWindowText(_T("FCS"));
 	}
 }
 
@@ -403,16 +536,37 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: Add your message handler code here and/or call default
+	CString temp1, temp2;
+	float soma, media;
+	int tam;
+
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
 	case ID_TIMER_FCC:
 		for(int i=1; i<=m_numCanais; i++)
 			leDadosCanal(i);
 		break;
+
+	case ID_TIMER_FCS:
+		for (int i = 1; i <= m_numCanais; i++) {
+			leDadosCanal(i);
+			
+			soma = 0;
+			tam = m_pwndGraficoCanal[i - 1].getTamVetorDeDados();
+			for (int j = 0; j < tam; j++)
+				soma += m_pwndGraficoCanal[i - 1].getAt(j);
+			media = soma / tam;
+
+			temp1.Format(_T("Média canal %d = %f\t"), i, media);
+			temp2 += temp1;
+		}
+		GetDlgItem(IDC_EDIT_RCVD_MSG)->SetWindowTextW(temp2);
+		break;
+
 	default:
 		break;
 	}
-
+	
 	CDialogEx::OnTimer(nIDEvent);
 }
 
@@ -524,14 +678,22 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 	tam = atoi(temp);
 	delete[] temp;
 
-	CString lixo;
+	/*
+	CString lixo;						// Imprime o tamanho
 	lixo.Format(_T("%d"), tam);
 	GetDlgItem(IDC_EDIT_RCVD_MSG)->SetWindowTextW(lixo);
+	*/
 
 	sinal = new float[tam];				// Aloca o buffer e preenche
 	for (int i = 0; i < tam; i++)
 		sinal[i] = (buf[2 + N + i] - 127) * deltaV;
-	m_wndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
-	m_wndGraficoCanal[canal - 1].plotaGrafico(sinal, tam);
+	m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
+	m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam);
 	delete[] sinal;
 }
+
+void CMedicOnChipRigolMSO5074Dlg::SendCommand()
+{
+	
+}
+

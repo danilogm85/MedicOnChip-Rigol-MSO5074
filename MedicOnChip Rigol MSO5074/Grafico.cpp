@@ -97,3 +97,12 @@ void CGrafico::OnPaint()
 	// TODO: Adicione seu código de manipulador de mensagens aqui
 	// Não chamar CWnd::OnPaint() para mensagens de pintura
 }
+
+
+float CGrafico::getAt(const int pos)
+{
+	if ((m_pVetorDadosLocal) && (pos >= 0) && (pos < m_tamVetor))
+		return m_pVetorDadosLocal[pos];
+	else
+		return FLT_MIN;
+}

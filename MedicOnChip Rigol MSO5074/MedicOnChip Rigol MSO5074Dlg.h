@@ -7,11 +7,13 @@
 #include <visa.h>
 #include "JanelaDoGrafico.h"
 #include "FCCParametersDlg.h"
-
+#include "FCSParametersDlg.h"
 //#define MAX_CANAIS			4
 
 #define ID_TIMER_ADQUIRIR	1
 #define ID_TIMER_FCC		2
+#define ID_TIMER_FCS		3
+
 
 
 // CMedicOnChipRigolMSO5074Dlg dialog
@@ -49,7 +51,7 @@ public:
 protected:
 	//Gráficos da interface principal
 	unsigned int m_numCanais;
-	CJanelaDoGrafico* m_wndGraficoCanal;	//m_wndGraficoCanal[MAX_CANAIS];
+	CJanelaDoGrafico* m_pwndGraficoCanal;	//m_wndGraficoCanal[MAX_CANAIS];
 	BOOL m_bAquisicaoAtiva;
 	ViSession m_defaultRM;
 	ViSession m_vi;
@@ -57,7 +59,8 @@ protected:
 	ViRsrc m_matches = m_buffer;
 	ViUInt32 m_nmatches;
 	ViFindList m_list;
-	FCCParametersDlg m_FCCParametersDlg;
+	CFCCParametersDlg m_FCCParametersDlg;
+	CFCSParametersDlg m_FCSParametersDlg;
 
 public:
 	afx_msg void OnBnClickedButtonSendAndRead();
@@ -74,4 +77,6 @@ protected:
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
+	afx_msg void OnBnClickedButtonFCS();
+	void SendCommand();
 };
