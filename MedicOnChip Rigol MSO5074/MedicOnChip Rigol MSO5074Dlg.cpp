@@ -367,19 +367,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				UpdateData(TRUE);
 				m_receive = parameters_log.c_str();
 				UpdateData(FALSE);
-				/*
 
-				std::cout << results.vds_source_params.v_pp << std::endl;
-				std::cout << results.vds_source_params.freq << std::endl;
-				std::cout << results.vds_source_params.v_offset << std::endl;
-				std::cout << results.vds_source_params.Id << std::endl;
-				std::cout << results.vds_source_params.wave_type << std::endl;
+				MeasurementChannel vds_meas;
+				vds_meas.write_parameters_to_osc(results.vds_meas_params).c_str();
+				MeasurementChannel current_meas;
 
-				std::cout << results.vg_source_params.v_pp << std::endl;
-				std::cout << results.vg_source_params.freq << std::endl;
-				std::cout << results.vg_source_params.v_offset << std::endl;
-				std::cout << results.vg_source_params.Id << std::endl;
-				std::cout << results.vg_source_params.wave_type << std::endl;  */
+				UpdateData(TRUE);
+				m_receive = current_meas.write_parameters_to_osc(results.current_meas_params).c_str();
+				UpdateData(FALSE);
 /*
 				//Ajusta as escalas dos canais 1 e 2
 				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");
@@ -392,7 +387,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				viPrintf(m_vi, ":TIMEbase:SCALe 200E-3\n");
 
 				//Ajusta a saída do gerador de sinais 1
-				viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
+				//viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion RAMP\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion:RAMP:SYMMetry 50\n");
 				viPrintf(m_vi, ":SOURce1:VOLTage 800E-3\n");
@@ -692,8 +687,34 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 	delete[] sinal;
 }
 
-void CMedicOnChipRigolMSO5074Dlg::SendCommand()
+void SendCommand(char _command[256])
 {
-	
-}
+	ViSession defaultRM, vi;
+	char buf[256] = { 0 };
+	CString s, command;
+	//char* stringTemp;
+	char stringTemp[256];
 
+	ViChar buffer[VI_FIND_BUFLEN];
+	ViRsrc matches = buffer;
+	ViUInt32 nmatches;
+	ViFindList list;
+
+	viOpenDefaultRM(&defaultRM);
+	//Acquire the USB resource of VISA
+	viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+	viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+
+	//Send the command received
+	//m_combox.GetLBText(m_combox.GetCurSel(), strTemp);
+	//m_combox.GetWindowText(strTemp);
+	command = _command;
+	command += "\n";
+	//stringTemp = (char*)(LPCTSTR)strTemp;
+	for (int i = 0; i < command.GetLength(); i++)
+		stringTemp[i] = (char)command.GetAt(i);
+
+	viPrintf(vi, stringTemp);
+
+	viClose(defaultRM);
+}

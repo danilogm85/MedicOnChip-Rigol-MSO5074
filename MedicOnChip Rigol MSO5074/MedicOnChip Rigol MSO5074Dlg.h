@@ -78,5 +78,7 @@ protected:
 public:
 	afx_msg void OnBnClickedButtonFCC();
 	afx_msg void OnBnClickedButtonFCS();
-	void SendCommand();
+	
 };
+
+void SendCommand(char command[256]);

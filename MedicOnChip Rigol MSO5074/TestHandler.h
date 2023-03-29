@@ -35,7 +35,7 @@ struct MeasurementChannel_parameters{
 	float volts_div;
 	float offset = 0;
 	std::string coupling = "DC";
-	std::string attenuation = "1X";
+	std::string attenuation = "1";
 	bool invert = false;
 	bool bw_limit = false;
 	unsigned int Id;
@@ -79,7 +79,7 @@ public:
 	~MeasurementChannel();
 	MeasurementChannel_parameters read_parameters_from_osc();			//ID 13
 	bool is_active();													//ID 14
-	bool write_parameters_to_osc(MeasurementChannel_parameters parameters);		//ID 15
+	std::string write_parameters_to_osc(MeasurementChannel_parameters parameters);		//ID 15
 	bool on();															//ID 17
 	bool off();															//ID 18
 };

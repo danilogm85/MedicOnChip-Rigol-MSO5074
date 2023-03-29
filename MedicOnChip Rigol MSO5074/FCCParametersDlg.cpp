@@ -9,7 +9,8 @@
 
 // CFCCParametersDlg dialog
 
-IMPLEMENT_DYNAMIC(CFCCParametersDlg, CDialogEx)
+IMPLEMENT_DYNAMIC(CFCCParametersDlg, 
+	CDialogEx)
 
 CFCCParametersDlg::CFCCParametersDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_DIALOG_FCC, pParent)
