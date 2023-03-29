@@ -368,13 +368,16 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				m_receive = parameters_log.c_str();
 				UpdateData(FALSE);
 
-				MeasurementChannel vds_meas;
-				vds_meas.write_parameters_to_osc(results.vds_meas_params).c_str();
-				MeasurementChannel current_meas;
+				tester.set_t_scale(results.t_scale);
 
-				UpdateData(TRUE);
-				m_receive = current_meas.write_parameters_to_osc(results.current_meas_params).c_str();
-				UpdateData(FALSE);
+				MeasurementChannel vds_meas;
+				vds_meas.write_parameters_to_osc(results.vds_meas_params);
+				MeasurementChannel current_meas;
+				current_meas.write_parameters_to_osc(results.current_meas_params);
+
+				//UpdateData(TRUE);
+				//m_receive = 
+				//UpdateData(FALSE);
 /*
 				//Ajusta as escalas dos canais 1 e 2
 				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");

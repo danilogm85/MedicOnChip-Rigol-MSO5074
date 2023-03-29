@@ -123,7 +123,13 @@ float TestHandler::get_t_scale()
 //Output: boolean success/fail flag (true=success)
 bool TestHandler::set_t_scale(float t_scale)
 {
-    return false;
+    char command[256] = { 0 };
+    std::string command_str = ":TIM:MAIN:SCAL ";
+    command_str += std::to_string(t_scale) + "\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+
+    return true;
 };
 
 //Clear curves in the osciloscope screen
@@ -175,7 +181,7 @@ bool MeasurementChannel::is_active()
 //Send the channel config to osciloscope
 //Input: MeasurementChannel_parameters struct with the desired parameters
 //Output: boolean success/fail flag (true=success)
-std::string MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters parameters){
+bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters parameters){
 
     char command[256] = { 0 };
     std::string command_str = "";
@@ -248,8 +254,8 @@ std::string MeasurementChannel::write_parameters_to_osc(MeasurementChannel_param
     SendCommand(command);
     log_string += command_str;
     
-    return log_string;
-};
+    return true;
+}
 
 //Turn the channel on
 //Output: boolean success/fail flag (true=success)

@@ -62,7 +62,7 @@ public:
 	bool send_trigger_parameters(Trigger_parameters);		//ID 2
 	std::string read_trigger_status();						//ID 3
 	bool set_trigger_mode(std::string mode);				//ID 4
-	bool set_t_scale(float t_scale);						//ID 5
+	bool set_t_scale(float t_scale);						//ID 5 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
 	float get_t_scale();									//ID 6
 	void clear_screen();									//ID 7
 	FCC_parameters get_fcc_parameters();					//ID 8
@@ -79,7 +79,7 @@ public:
 	~MeasurementChannel();
 	MeasurementChannel_parameters read_parameters_from_osc();			//ID 13
 	bool is_active();													//ID 14
-	std::string write_parameters_to_osc(MeasurementChannel_parameters parameters);		//ID 15
+	bool write_parameters_to_osc(MeasurementChannel_parameters parameters);		//ID 15 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
 	bool on();															//ID 17
 	bool off();															//ID 18
 };
