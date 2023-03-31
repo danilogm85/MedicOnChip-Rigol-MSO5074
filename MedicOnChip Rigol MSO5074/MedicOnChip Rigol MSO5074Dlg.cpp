@@ -90,6 +90,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_FCC, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC)
 	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)
+	ON_BN_CLICKED(IDC_BUTTON1, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1)
 END_MESSAGE_MAP()
 
 
@@ -723,4 +724,11 @@ void SendCommand(char _command[256])
 	viPrintf(vi, stringTemp);
 
 	viClose(defaultRM);
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1()
+{
+	TestHandler teste;
+	teste.clear_screen();
 }

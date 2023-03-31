@@ -197,7 +197,17 @@ bool TestHandler::set_t_scale(float t_scale)
 };
 
 //Clear curves in the osciloscope screen
-void TestHandler::clear_screen(){};
+void TestHandler::clear_screen(){
+    char channel_1[256] = ":CHANnel1:DISPlay OFF";
+    char channel_2[256] = ":CHANnel2:DISPlay OFF";
+    char channel_3[256] = ":CHANnel3:DISPlay OFF";
+    char channel_4[256] = ":CHANnel4:DISPlay OFF";
+    SendCommand(channel_1);
+    SendCommand(channel_2);
+    SendCommand(channel_3);
+    SendCommand(channel_4);
+
+};
 
 //Config trigger, time scale, source and measurement channels and let osciloscope ready to run FCC
 //Output: boolean success/fail flag (true=success)

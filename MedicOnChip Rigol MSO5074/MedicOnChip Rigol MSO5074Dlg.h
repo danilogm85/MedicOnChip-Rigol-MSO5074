@@ -79,6 +79,7 @@ public:
 	afx_msg void OnBnClickedButtonFCC();
 	afx_msg void OnBnClickedButtonFCS();
 	
+	afx_msg void OnBnClickedButton1();
 };
 
 void SendCommand(char command[256]);
