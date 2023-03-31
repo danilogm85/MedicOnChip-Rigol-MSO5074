@@ -1,5 +1,19 @@
 //TestHandler - Hold methods and parameters to perform tests (FCC,FCS...)
 
+/*      BACKLOG
+
+CONFIGURAÇÕES DO OSC QUE PODEM SER NECESSÁRIAS:
+-ACQUIRE:
+--MEM DEPTH
+--HIGH RESOLUTION
+--NUMERO DE MÉDIAS
+
+-TRIGGER:
+RUÍDO ESTÁ DISPARANDO O TRIGGER. COLOCAR TRIGGER EM UMA FONTE NÃO UTILIZADA (ex. D0) E TRIGGAR PELO FORCE???
+-Nesse caso, temos que colocar um pull down no D0 para garantir que ele não trigue nada
+
+*/
+
 #include "pch.h"
 #include "TestHandler.h"
 #include "MedicOnChip Rigol MSO5074Dlg.h"
@@ -58,10 +72,10 @@ FCC_parameters TestHandler::get_fcc_parameters(){
 
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
-    float cycles = stof(ini.get("FCC").get("CYCLES"));
+    parameters.vds_source_params.cycles = stof(ini.get("FCC").get("CYCLES"));
     parameters.vds_source_params.freq = stof(ini.get("FCC").get("FREQ"));
-    parameters.t_scale = cycles/(parameters.vds_source_params.freq*10);   //Divides by ten because there are ten divisions in osciloscope time scale
-
+    parameters.t_scale = parameters.vds_source_params.cycles /(parameters.vds_source_params.freq*10);   //Divides by ten because there are ten divisions in osciloscope time scale
+    
     //Read RG_LIMITS
     read_values = ini.get("FCC").get("RG_LIMITS");
     splitted_values = customSplit(read_values, ';');
@@ -89,12 +103,62 @@ Trigger_parameters TestHandler::read_trigger_parameters()
 };
 
 //Configure trigger
+//Configure triggerset_trigger_mode
 //Input: Trigger_parameters: struct with the trigger configurations to set
 //Output: boolean success/fail flag (true=success)
-bool TestHandler::send_trigger_parameters(Trigger_parameters)
+bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
 {
+    /*struct Trigger_parameters{
+	float level;
+	std::string mode;
+	std::string slope;
+	unsigned int source;
+};*/
+
+    char command[256] = { 0 };
+    std::string command_str = "";
+    //std::string log_string = "";
+    std::string mode = ":MODE";
+    std::string slope = ":SLOP ";
+    std::string source = ":SOUR ";
+    std::string level = ":LEV ";
+    std::string trigger = ":TRIG";
+
+    command_str = trigger;
+
+    //Set Mode
+    command_str += mode + " " + parameters.mode;
+    command_str += "\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+    log_string += command_str;
+    command_str = trigger + ":" + parameters.mode;
+
+    //Set slope
+    command_str += slope + parameters.slope;
+    command_str += "\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+    log_string += command_str;
+    command_str = trigger + ":" + parameters.mode;
+
+    //Set SOURCE
+    command_str += source + parameters.source;
+    command_str += "\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+    log_string += command_str;
+    command_str = trigger + ":" + parameters.mode;
+
+    //Set level
+    command_str += level + std::to_string(parameters.level);
+    command_str += "\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+    log_string += command_str;
+
     return false;
-};
+}
 
 //Read the current trigger status. Usefull to check if set_trigger_mode() function worked.
 //Output: status (STOP, SINGLE, etc...)
@@ -185,7 +249,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
 
     char command[256] = { 0 };
     std::string command_str = "";
-    std::string log_string = "";
+    //std::string log_string = "";
     std::string scale = ":SCAL ";
     std::string offset = ":OFFS ";
     std::string coupling = ":COUP ";
@@ -202,7 +266,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = channel;
 
     //Set invert
@@ -212,7 +276,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = channel;
 
     //Set BW limit
@@ -222,7 +286,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);  
-    log_string += command_str;
+    //log_string += command_str;
     command_str = channel;
   
     //Set Attenuation
@@ -230,13 +294,13 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = channel;
 
     //Set fine scale adjust
     command_str = ":CHANnel1:VERNier ON\n";
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = channel;
 
     //Set volts/div
@@ -244,7 +308,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = channel;
 
     //Set offset
@@ -252,7 +316,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     
     return true;
 }

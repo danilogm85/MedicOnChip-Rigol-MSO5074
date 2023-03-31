@@ -16,11 +16,10 @@ const struct waves{
 } waves;
 
 struct Trigger_parameters{
-	std::string status;
-	float level;
-	std::string type;
-	std::string slope;
-	unsigned int source;
+	float level = 0.01;
+	std::string mode = "EDGE";
+	std::string slope = "RFAL";
+	std::string source = "CHAN1";
 };
 
 struct SourceChannel_parameters{
@@ -29,6 +28,7 @@ struct SourceChannel_parameters{
 	std::string wave_type = "none";
 	unsigned int Id = 0;
 	unsigned int freq = 0;
+	unsigned int cycles;	//Number of cycles of the burst
 };
 
 struct MeasurementChannel_parameters{
@@ -59,7 +59,7 @@ public:
 	TestHandler();
 	~TestHandler();
 	Trigger_parameters read_trigger_parameters();			//ID 1
-	bool send_trigger_parameters(Trigger_parameters);		//ID 2
+	bool send_trigger_parameters(Trigger_parameters parameters);		//ID 2 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
 	std::string read_trigger_status();						//ID 3
 	bool set_trigger_mode(std::string mode);				//ID 4
 	bool set_t_scale(float t_scale);						//ID 5 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
@@ -70,6 +70,7 @@ public:
 	bool start_fcc();										//ID 10
 	void save_fcc_in_csv(float vg, std::string data);		//ID 11
 	void calculate_fcc_results();							//ID 12
+	std::string log_string = "";
 };
 
 class MeasurementChannel : public TestHandler

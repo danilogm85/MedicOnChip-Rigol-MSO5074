@@ -357,27 +357,30 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				FCC_parameters results;
 				results = tester.get_fcc_parameters();
 
-				std::string parameters_log;
+				//Debugging:
+				//std::string parameters_log;
+				//parameters_log = "Parametros do FCC:\n";
+				//parameters_log = parameters_log + "Canal 1 (Vds) - Tipo: " + results.vds_source_params.wave_type;
+				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.v_pp) + "Vpp, Offset de " + std::to_string(results.vds_source_params.v_offset);
+				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.freq) + " Hz";
 
-				parameters_log = "Parametros do FCC:\n";
-				parameters_log = parameters_log + "Canal 1 (Vds) - Tipo: " + results.vds_source_params.wave_type;
-				parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.v_pp) + "Vpp, Offset de " + std::to_string(results.vds_source_params.v_offset);
-				parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.freq) + " Hz";
-
-				UpdateData(TRUE);
-				m_receive = parameters_log.c_str();
-				UpdateData(FALSE);
+				//UpdateData(TRUE);
+				//m_receive = parameters_log.c_str();
+				//UpdateData(FALSE);
 
 				tester.set_t_scale(results.t_scale);
 
-				MeasurementChannel vds_meas;
+				MeasurementChannel vds_meas, current_meas;
 				vds_meas.write_parameters_to_osc(results.vds_meas_params);
-				MeasurementChannel current_meas;
 				current_meas.write_parameters_to_osc(results.current_meas_params);
 
-				//UpdateData(TRUE);
-				//m_receive = 
-				//UpdateData(FALSE);
+				Trigger_parameters trigger_parameters;
+				trigger_parameters.source = "CHAN1";
+				tester.send_trigger_parameters(trigger_parameters);
+
+				UpdateData(TRUE);
+				m_receive = tester.log_string.c_str();
+				UpdateData(FALSE);
 /*
 				//Ajusta as escalas dos canais 1 e 2
 				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");
