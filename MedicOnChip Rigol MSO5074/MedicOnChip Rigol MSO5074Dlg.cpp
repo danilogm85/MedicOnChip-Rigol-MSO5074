@@ -265,7 +265,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSendAndRead()
 		m_receive = buf;
 		UpdateData(FALSE);
 		viClose(defaultRM);
-}
+}//Danilao ex-careca
 
 // Trata o botão "Comandar"
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSend()
