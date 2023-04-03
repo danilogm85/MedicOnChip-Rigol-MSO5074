@@ -91,6 +91,8 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_FCC, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC)
 	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)
 	ON_BN_CLICKED(IDC_BUTTON1, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON2, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton2)
+	ON_BN_CLICKED(IDC_BUTTON3, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton3)
 END_MESSAGE_MAP()
 
 
@@ -731,4 +733,30 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1()
 {
 	TestHandler teste;
 	teste.clear_screen();
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton2()
+{
+	SourceChannel gerador1;
+	SourceChannel_parameters source_1;
+	source_1.freq = 60;
+	source_1.Id = 1;
+	source_1.v_offset = 0;
+	source_1.v_pp = 2;
+	source_1.wave_type = "RAMP";
+	gerador1.start(source_1.Id);
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton3()
+{
+	SourceChannel gerador1;
+	SourceChannel_parameters source_1;
+	source_1.freq = 60;
+	source_1.Id = 1;
+	source_1.v_offset = 0;
+	source_1.v_pp = 2;
+	source_1.wave_type = "RAMP";
+	gerador1.stop(source_1.Id);
 }

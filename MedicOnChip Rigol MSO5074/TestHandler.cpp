@@ -373,15 +373,23 @@ bool SourceChannel::write_parameters_to_osc(SourceChannel_parameters parameters)
 
 //Start source
 //Output: boolean success/fail flag (true=success)
-bool SourceChannel::start()
+bool SourceChannel::start(int Source_ID)
 {
+    string aux = ":SOURce" + to_string(Source_ID) + ":OUTPut 1\n";
+    char SCPI_command[256];
+    string_to_char_array(aux, SCPI_command);
+    SendCommand(SCPI_command);
     return false;
 };
 
 //Stop source
 //Output: boolean success/fail flag (true=success)
-bool SourceChannel::stop()
+bool SourceChannel::stop(int Source_ID)
 {
+    string aux = ":SOURce" + to_string(Source_ID) + ":OUTPut 0\n";
+    char SCPI_command[256];
+    string_to_char_array(aux, SCPI_command);
+    SendCommand(SCPI_command);
     return false;
 };
 

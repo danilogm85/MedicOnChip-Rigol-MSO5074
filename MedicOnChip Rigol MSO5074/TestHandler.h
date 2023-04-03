@@ -93,6 +93,6 @@ public:
 	SourceChannel_parameters read_parameters_from_osc();	//ID 19
 	bool is_active();										//ID 20
 	bool write_parameters_to_osc(SourceChannel_parameters parameters);	//ID 21
-	bool start();											//ID 22
-	bool stop();											//ID 23
+	bool start(int Source_ID);											//ID 22
+	bool stop(int Source_ID);											//ID 23
 };
