@@ -368,49 +368,54 @@ bool SourceChannel::is_active()
 //Output: boolean success/fail flag (true=success)
 bool SourceChannel::write_parameters_to_osc(SourceChannel_parameters parameters)
 {
+    waveForm_write_to_osc(parameters);
+    Frequency_write_to_osc(parameters);
+    VPP_write_to_osc(parameters);
+    Voffset_write_to_osc(parameters);
+    
     return false;
 };
 
-bool SourceChannel::Frequency_write_to_osc(SourceChannel_parameters parameters)
+void SourceChannel::Frequency_write_to_osc(SourceChannel_parameters parameters)
 {
     std::string freq = ":SOURce" + to_string(parameters.Id) + ":FREQuency " + to_string(parameters.freq) + "\n";
     char SCPI_freq[256];
     string_to_char_array(freq, SCPI_freq);
     SendCommand(SCPI_freq);
 
-    return false;
+  
 };
 
-bool SourceChannel::waveForm_write_to_osc(SourceChannel_parameters parameters)
+void SourceChannel::waveForm_write_to_osc(SourceChannel_parameters parameters)
 {
     std::string wave = ":SOURce" + to_string(parameters.Id) + ":FUNCtion " + parameters.wave_type + "\n";
     char SCPI_wave_form[256];
     string_to_char_array(wave,SCPI_wave_form);
     SendCommand(SCPI_wave_form);
 
-    return false;
+    
 
 };
 
-bool SourceChannel::VPP_write_to_osc(SourceChannel_parameters parameters) {
+void SourceChannel::VPP_write_to_osc(SourceChannel_parameters parameters) {
     
     std::string vpp = ":SOURce" + to_string(parameters.Id) + ":VOLTage " + to_string(parameters.v_pp) + "\n";
     char SCPI_vpp[256];
     string_to_char_array(vpp,SCPI_vpp);
     SendCommand(SCPI_vpp);
 
-    return false;
+    
 
 };
 
-bool SourceChannel::Voffset_write_to_osc(SourceChannel_parameters parameters)
+void SourceChannel::Voffset_write_to_osc(SourceChannel_parameters parameters)
 {
     std::string offset = ":SOURce" + to_string(parameters.Id) + ":VOLTage:OFFSet " + to_string(parameters.v_offset) + "\n";
     char SCPI_Voffset[256];
     string_to_char_array(offset,SCPI_Voffset);
     SendCommand(SCPI_Voffset);
 
-    return false;
+    
 
 };
 //Start source

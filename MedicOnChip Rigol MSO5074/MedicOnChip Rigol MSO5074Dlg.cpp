@@ -97,6 +97,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON5, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON6, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON7, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton7)
+	ON_BN_CLICKED(IDC_BUTTON8, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8)
 END_MESSAGE_MAP()
 
 
@@ -729,6 +730,7 @@ void SendCommand(char _command[256])
 
 	viPrintf(vi, stringTemp);
 
+	viClose(vi);
 	viClose(defaultRM);
 }
 
@@ -817,4 +819,17 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton7()
 	source_1.v_pp = 2;
 	source_1.wave_type = "RAMP";
 	gerador1.Voffset_write_to_osc(source_1);
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
+{
+	SourceChannel gerador1;
+	SourceChannel_parameters source_1;
+	source_1.freq = 60;
+	source_1.Id = 1;
+	source_1.v_offset = 1;
+	source_1.v_pp = 2;
+	source_1.wave_type = "RAMP";
+	gerador1.write_parameters_to_osc(source_1);
 }
