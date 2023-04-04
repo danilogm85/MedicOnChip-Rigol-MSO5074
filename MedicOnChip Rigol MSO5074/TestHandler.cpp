@@ -415,9 +415,15 @@ SourceChannel_parameters SourceChannel::read_parameters_from_osc()
 
 //Check if channel is on. Usefull to check if  start() and stop() worked
 //Output: boolean value, true = channel is on
-bool SourceChannel::is_active()
+bool SourceChannel::is_active(SourceChannel_parameters parameters)
 {
-    return false;
+    string read = ":SOURce" + to_string(parameters.Id) + ":OUTPut?" + "/n";
+    char SCPI_command[256];
+    string_to_char_array(read, SCPI_command);
+    read = readOsciloscope(SCPI_command);
+    if (read == "1") return true;
+    else if (read == "0") return false;
+    
 };
 
 //Send the channel config to osciloscope
