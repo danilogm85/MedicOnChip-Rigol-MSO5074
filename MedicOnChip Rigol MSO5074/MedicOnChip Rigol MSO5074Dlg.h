@@ -8,6 +8,7 @@
 #include "JanelaDoGrafico.h"
 #include "FCCParametersDlg.h"
 #include "FCSParametersDlg.h"
+#include <string>
 //#define MAX_CANAIS			4
 
 #define ID_TIMER_ADQUIRIR	1
@@ -90,3 +91,4 @@ public:
 };
 
 void SendCommand(char command[256]);
+std::string readOsciloscope(char command[256]);

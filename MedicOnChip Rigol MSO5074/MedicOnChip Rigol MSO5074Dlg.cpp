@@ -9,6 +9,7 @@
 #include "afxdialogex.h"
 #include "TestHandler.h"
 #include <iostream>
+#include <string>
 //#define _USE_MATH_DEFINES
 //#include <math.h>
 
@@ -273,7 +274,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSendAndRead()
 		m_receive = buf;
 		UpdateData(FALSE);
 		viClose(defaultRM);
-}//Danilao ex-careca
+}
 
 // Trata o botão "Comandar"
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSend()
@@ -706,7 +707,6 @@ void SendCommand(char _command[256])
 	ViSession defaultRM, vi;
 	char buf[256] = { 0 };
 	CString s, command;
-	//char* stringTemp;
 	char stringTemp[256];
 
 	ViChar buffer[VI_FIND_BUFLEN];
@@ -719,12 +719,10 @@ void SendCommand(char _command[256])
 	viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
 	viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
 
-	//Send the command received
-	//m_combox.GetLBText(m_combox.GetCurSel(), strTemp);
-	//m_combox.GetWindowText(strTemp);
+
 	command = _command;
 	command += "\n";
-	//stringTemp = (char*)(LPCTSTR)strTemp;
+
 	for (int i = 0; i < command.GetLength(); i++)
 		stringTemp[i] = (char)command.GetAt(i);
 
@@ -733,6 +731,40 @@ void SendCommand(char _command[256])
 	viClose(vi);
 	viClose(defaultRM);
 }
+
+std::string readOsciloscope(char _command[256])
+{
+	
+	ViSession defaultRM, vi;
+	char buf[256] = { 0 };
+	CString s, strTemp;
+	char stringTemp[256];
+
+	ViChar buffer[VI_FIND_BUFLEN];
+	ViRsrc matches = buffer;
+	ViUInt32 nmatches;
+	ViFindList list;
+
+	viOpenDefaultRM(&defaultRM);
+
+	//Acquire the USB resource of VISA
+	viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+	viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+
+	//Send the command received
+	strTemp = _command;
+	strTemp += "\n";
+	for (int i = 0; i < strTemp.GetLength(); i++)
+		stringTemp[i] = (char)strTemp.GetAt(i);
+	viPrintf(vi, stringTemp);
+
+	//Read the results
+	viScanf(vi, "%t\n", &buf);
+	viClose(vi);
+	viClose(defaultRM);
+	std::string aux = buf;
+	return  aux;
+};
 
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1()
@@ -831,5 +863,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
 	source_1.v_offset = 1;
 	source_1.v_pp = 2;
 	source_1.wave_type = "RAMP";
+	if (gerador1.is_active(source_1) == true) {
+		gerador1.write_parameters_to_osc(source_1);
+	}
+	else { gerador1.start(source_1.Id);
 	gerador1.write_parameters_to_osc(source_1);
+	};
 }

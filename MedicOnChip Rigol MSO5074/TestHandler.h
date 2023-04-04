@@ -91,16 +91,12 @@ public:
 	SourceChannel();
 	~SourceChannel();
 	SourceChannel_parameters read_parameters_from_osc();	//ID 19
-	bool is_active();										//ID 20
+	bool is_active(SourceChannel_parameters parameters);										//ID 20
 	bool write_parameters_to_osc(SourceChannel_parameters parameters);	//ID 21
 	void waveForm_write_to_osc(SourceChannel_parameters parameters);
 	void VPP_write_to_osc(SourceChannel_parameters parameters);
 	void Voffset_write_to_osc(SourceChannel_parameters parameters);
 	void Frequency_write_to_osc(SourceChannel_parameters parameters);
-
-
-
-
 	bool start(int Source_ID);											//ID 22
 	bool stop(int Source_ID);											//ID 23
 };
