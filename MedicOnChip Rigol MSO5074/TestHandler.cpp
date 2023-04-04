@@ -28,7 +28,9 @@ void string_to_char_array(std::string str, char* buffer);
 //Constructors and destructors. Do we need them?
 TestHandler::TestHandler(){};
 TestHandler::~TestHandler(){};
-MeasurementChannel::MeasurementChannel(){};
+MeasurementChannel::MeasurementChannel(int _id){
+    id = _id;
+}
 MeasurementChannel::~MeasurementChannel(){};
 SourceChannel::SourceChannel(){};
 SourceChannel::~SourceChannel(){};
@@ -211,15 +213,53 @@ void TestHandler::clear_screen(){
 
 //Config trigger, time scale, source and measurement channels and let osciloscope ready to run FCC
 //Output: boolean success/fail flag (true=success)
-bool TestHandler::set_osc_to_fcc(FCC_parameters)
+bool TestHandler::set_osc_to_fcc(FCC_parameters parameters)
 {
+    //Configura escala de tempo
+    set_t_scale(parameters.t_scale);
+
+    //Configura canais de medição
+    MeasurementChannel vds_meas(parameters.vds_meas_params.Id);
+    MeasurementChannel current_meas(parameters.current_meas_params.Id);
+    vds_meas.write_parameters_to_osc(parameters.vds_meas_params);
+    current_meas.write_parameters_to_osc(parameters.current_meas_params);
+
+    //Configura trigger
+    Trigger_parameters trigger_parameters;
+    trigger_parameters.source = "CHAN1";
+    send_trigger_parameters(trigger_parameters);
+
+    //Configura fontes
+    SourceChannel vds_source, vg_source;
+    vds_source.write_parameters_to_osc(parameters.vds_source_params);
+    vg_source.write_parameters_to_osc(parameters.vg_source_params);
+
+    char buff[10] = { 0 };
+
+    //Stop
+    string_to_char_array(sys_commands.STOP, &buff[0]);
+    SendCommand(buff);
+
+    //Limpa tela
+    string_to_char_array(sys_commands.CLEAR, &buff[0]);
+    SendCommand(buff);
+
+    //Desliga canais de fontes
+    vds_source.stop(1);
+    vg_source.stop(2);
+
+    //Liga canais de medição
+    vds_meas.on();
+    current_meas.on();
+
     return false;
-};
+}
 
 //Set SINGLE mode and turn sources on
 //Output: boolean success/fail flag (true=success)
 bool TestHandler::start_fcc()
 {
+
     return false;
 };
 
@@ -268,7 +308,7 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
     std::string bw_limit = ":BWLimit ";
     std::string channel = ":CHAN";
 
-    channel += std::to_string(parameters.Id);
+    channel += std::to_string(id);
     command_str = channel;
 
     //Set Coupling
@@ -335,6 +375,12 @@ bool MeasurementChannel::write_parameters_to_osc(MeasurementChannel_parameters p
 //Output: boolean success/fail flag (true=success)
 bool MeasurementChannel::on()
 {
+    char command[20] = { 0 };
+    std::string command_str = ":CHAN";
+    command_str += std::to_string(id) + ":DISP 1\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+
     return false;
 };
 
@@ -342,8 +388,19 @@ bool MeasurementChannel::on()
 //Output: boolean success/fail flag (true=success)
 bool MeasurementChannel::off()
 {
+
+    char command[20] = { 0 };
+    std::string command_str = ":CHAN";
+    command_str += std::to_string(id) + ":DISP 0\n";
+    string_to_char_array(command_str, &command[0]);
+    SendCommand(command);
+
     return false;
-};
+}
+
+unsigned int MeasurementChannel::get_id() {
+    return id;
+}
 
 //--------------End of  MeasurementChannel Class functions------------------------
 //--------------Begin of SourceChannel Class functions------------------------

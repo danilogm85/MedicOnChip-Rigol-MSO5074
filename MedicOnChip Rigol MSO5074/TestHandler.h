@@ -15,6 +15,14 @@ const struct waves{
 	std::string DC = "DC";
 } waves;
 
+const struct sys_commands {	
+	std::string STOP = ":STOP";
+	std::string RUN = ":RUN";
+	std::string SINGLE = ":SINGle";
+	std::string TFORCE = ":TFORce";
+	std::string CLEAR = ":CLEar";
+} sys_commands;
+
 struct Trigger_parameters{
 	float level = 0.01;
 	std::string mode = "EDGE";
@@ -66,7 +74,7 @@ public:
 	float get_t_scale();									//ID 6
 	void clear_screen();									//ID 7
 	FCC_parameters get_fcc_parameters();					//ID 8
-	bool set_osc_to_fcc(FCC_parameters);					//ID 9
+	bool set_osc_to_fcc(FCC_parameters parameters);					//ID 9
 	bool start_fcc();										//ID 10
 	void save_fcc_in_csv(float vg, std::string data);		//ID 11
 	void calculate_fcc_results();							//ID 12
@@ -75,28 +83,33 @@ public:
 
 class MeasurementChannel : public TestHandler
 {
+private:
+	int id;
 public:
-	MeasurementChannel();
+	MeasurementChannel(int _id);
 	~MeasurementChannel();
 	MeasurementChannel_parameters read_parameters_from_osc();			//ID 13
 	bool is_active();													//ID 14
 	bool write_parameters_to_osc(MeasurementChannel_parameters parameters);		//ID 15 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
 	bool on();															//ID 17
 	bool off();															//ID 18
+	unsigned int get_id();
 };
 
 class SourceChannel : public TestHandler
 {
+private:
+	unsigned int id;
 public:
 	SourceChannel();
 	~SourceChannel();
 	SourceChannel_parameters read_parameters_from_osc();	//ID 19
 	bool is_active();										//ID 20
 	bool write_parameters_to_osc(SourceChannel_parameters parameters);	//ID 21
-	void waveForm_write_to_osc(SourceChannel_parameters parameters);
-	void VPP_write_to_osc(SourceChannel_parameters parameters);
-	void Voffset_write_to_osc(SourceChannel_parameters parameters);
-	void Frequency_write_to_osc(SourceChannel_parameters parameters);
+	void waveForm_write_to_osc(SourceChannel_parameters parameters);    //ID 21.1
+	void VPP_write_to_osc(SourceChannel_parameters parameters);        //ID 21.2
+	void Voffset_write_to_osc(SourceChannel_parameters parameters);    //ID 21.3
+	void Frequency_write_to_osc(SourceChannel_parameters parameters);  //ID 21.4
 
 
 
@@ -104,3 +117,5 @@ public:
 	bool start(int Source_ID);											//ID 22
 	bool stop(int Source_ID);											//ID 23
 };
+
+void string_to_char_array(std::string str, char* buffer);

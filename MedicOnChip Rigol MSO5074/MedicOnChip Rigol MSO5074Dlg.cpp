@@ -376,19 +376,43 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//m_receive = parameters_log.c_str();
 				//UpdateData(FALSE);
 
+				//Set time scale
 				tester.set_t_scale(results.t_scale);
-
-				MeasurementChannel vds_meas, current_meas;
+				//Set measurement channels
+				MeasurementChannel vds_meas(results.vds_meas_params.Id);
+				MeasurementChannel current_meas(results.current_meas_params.Id);
 				vds_meas.write_parameters_to_osc(results.vds_meas_params);
 				current_meas.write_parameters_to_osc(results.current_meas_params);
-
+				//Set trigger
 				Trigger_parameters trigger_parameters;
 				trigger_parameters.source = "CHAN1";
 				tester.send_trigger_parameters(trigger_parameters);
+				//Set Source channels
+				SourceChannel vds_source, vg_source;
+				vds_source.write_parameters_to_osc(results.vds_source_params);
+				vg_source.write_parameters_to_osc(results.vg_source_params);
 
-				UpdateData(TRUE);
-				m_receive = tester.log_string.c_str();
-				UpdateData(FALSE);
+				char buff[10] = { 0 };
+
+				//Stop
+				string_to_char_array(sys_commands.STOP, &buff[0]);
+				SendCommand(buff);
+
+				//Limpa tela
+				string_to_char_array(sys_commands.CLEAR, &buff[0]);
+				SendCommand(buff);
+
+				//Desliga canais de fontes
+				vds_source.stop(1);
+				vg_source.stop(2);
+
+				//Liga canais de medição
+				vds_meas.on();
+				current_meas.on();
+
+				//UpdateData(TRUE);
+				//m_receive = tester.log_string.c_str();
+				//UpdateData(FALSE);
 /*
 				//Ajusta as escalas dos canais 1 e 2
 				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");
