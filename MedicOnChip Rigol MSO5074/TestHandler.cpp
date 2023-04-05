@@ -11,7 +11,7 @@ CONFIGURAÇÕES DO OSC QUE PODEM SER NECESSÁRIAS:
 -TRIGGER:
 RUÍDO ESTÁ DISPARANDO O TRIGGER. COLOCAR TRIGGER EM UMA FONTE NÃO UTILIZADA (ex. D0) E TRIGGAR PELO FORCE???
 -Nesse caso, temos que colocar um pull down no D0 para garantir que ele não trigue nada
-
+-PRÉ TRIGGER?
 */
 
 #include "pch.h"
@@ -166,8 +166,13 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
 //Output: status (STOP, SINGLE, etc...)
 string TestHandler::read_trigger_status()
 {
-    return "STOP";
-};
+    string read = ":TRIGger:STATus?\n";
+    char SCPI_command[256];
+    string_to_char_array(read, SCPI_command);
+    read = readOsciloscope(SCPI_command);
+    log_string = read;
+    return read;
+}
 
 //Set the trigger mode
 //Input: string mode: (STOP, SINGLE, etc...)

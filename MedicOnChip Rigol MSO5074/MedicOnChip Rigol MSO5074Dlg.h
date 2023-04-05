@@ -75,6 +75,7 @@ protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int);
+	//void SaveDatatoCSV();
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
