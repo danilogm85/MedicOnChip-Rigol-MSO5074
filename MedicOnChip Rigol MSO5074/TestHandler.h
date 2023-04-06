@@ -36,7 +36,9 @@ struct SourceChannel_parameters{
 	std::string wave_type = "none";
 	unsigned int Id = 0;
 	unsigned int freq = 0;
-	unsigned int cycles;	//Number of cycles of the burst
+	unsigned int cycles=0;	//Number of cycles of the burst
+	std::string generatorType = "none";
+	std::string Burst_Type = "none";
 };
 
 struct MeasurementChannel_parameters{
@@ -110,6 +112,9 @@ public:
 	void VPP_write_to_osc(SourceChannel_parameters parameters);
 	void Voffset_write_to_osc(SourceChannel_parameters parameters);
 	void Frequency_write_to_osc(SourceChannel_parameters parameters);
+	void Generator_type_to_osc(SourceChannel_parameters parameters);
+	void Burst_Type_write_to_osc(SourceChannel_parameters parameters);
+	void Burst_Cycles_write_to_osc(SourceChannel_parameters parameters);
 	bool start(int Source_ID);											//ID 22
 	bool stop(int Source_ID);											//ID 23
 };
