@@ -18,7 +18,9 @@
 #define new DEBUG_NEW
 #endif
 
-
+TestHandler tester;
+bool started = false;
+bool stopped = false;
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx
@@ -363,7 +365,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
-				TestHandler tester;
 				FCC_parameters results;
 				results = tester.get_fcc_parameters();
 
@@ -412,11 +413,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				vds_meas.on();
 				current_meas.on();
 
-				vds_source.start(1);
-				vg_source.start(2);
-
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
+
+				string_to_char_array(sys_commands.TFORCE, &buff[0]);
+				SendCommand(buff);
+
+				vds_source.start(1);
+				vg_source.start(2);
 
 				/*Isso não funciona porque o loop de tempo indeterminado trava a interface.Vamos ter que fazer por TIMER
 				while (tester.read_trigger_status() != "RUN") {
@@ -626,6 +630,26 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	default:
 		break;
 	}
+	/*
+	UpdateData(TRUE);
+	m_receive = tester.read_trigger_status().c_str();
+	UpdateData(FALSE);*/
+
+	if (tester.read_trigger_status() == "RUN\n") {
+		started = true;
+		stopped = false;
+	}
+	else if (started && (tester.read_trigger_status() == "STOP\n")) {
+		started = false;
+		stopped = true;
+	}
+
+	if (stopped) {
+		UpdateData(TRUE);
+		m_receive = "TERMINOU";
+		UpdateData(FALSE);
+		//SaveDatatoCSV();
+	}	
 	
 	CDialogEx::OnTimer(nIDEvent);
 }
@@ -684,7 +708,7 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 	return true;
 }
 
-/*
+
 void CMedicOnChipRigolMSO5074Dlg::SaveDatatoCSV()
 {
 	std::string read1 = ":SOURce1:OUTPut?/n";
@@ -897,7 +921,7 @@ void CMedicOnChipRigolMSO5074Dlg::SaveDatatoCSV()
 	delete[] sinal2;
 	delete[] sinal3;
 	delete[] sinal4;
-}*/
+}
 
 // Lê os dados do canal especificado e imprime no gráfico
 void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)

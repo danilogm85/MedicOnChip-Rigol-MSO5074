@@ -8,6 +8,7 @@
 #include "JanelaDoGrafico.h"
 #include "FCCParametersDlg.h"
 #include "FCSParametersDlg.h"
+//#include "TestHandler.h"
 #include <string>
 //#define MAX_CANAIS			4
 
@@ -75,7 +76,7 @@ protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int);
-	//void SaveDatatoCSV();
+	void SaveDatatoCSV();
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
@@ -89,6 +90,7 @@ public:
 	afx_msg void OnBnClickedButton6();
 	afx_msg void OnBnClickedButton7();
 	afx_msg void OnBnClickedButton8();
+
 };
 
 void SendCommand(char command[256]);
