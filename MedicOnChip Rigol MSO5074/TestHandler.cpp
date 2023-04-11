@@ -440,6 +440,9 @@ bool SourceChannel::write_parameters_to_osc(SourceChannel_parameters parameters)
     Frequency_write_to_osc(parameters);
     VPP_write_to_osc(parameters);
     Voffset_write_to_osc(parameters);
+    Generator_type_to_osc(parameters);
+    Burst_Type_write_to_osc(parameters);
+    Burst_Cycles_write_to_osc(parameters);
     
     return false;
 };
@@ -485,6 +488,28 @@ void SourceChannel::Voffset_write_to_osc(SourceChannel_parameters parameters)
 
     
 
+};
+void SourceChannel::Generator_type_to_osc(SourceChannel_parameters parameters)
+{
+    std::string generatorType = ":SOURce" +to_string(parameters.Id)+":TYPE "+parameters.generatorType + "\n";
+    char SCPI_GeneratorType[256];
+    string_to_char_array(generatorType,SCPI_GeneratorType);
+    SendCommand(SCPI_GeneratorType);
+};
+void SourceChannel::Burst_Type_write_to_osc(SourceChannel_parameters parameters)
+{
+    std::string burstType = ":SOURce" + to_string(parameters.Id) + ":BURSt:TYPE "+ parameters.Burst_Type + "\n";
+    char SCPI_BurstType[256];
+    string_to_char_array(burstType, SCPI_BurstType);
+    SendCommand(SCPI_BurstType);
+
+};
+void SourceChannel::Burst_Cycles_write_to_osc(SourceChannel_parameters parameters)
+{
+    std::string burst = ":SOURce" + to_string(parameters.Id) + ":BURSt:CYCLes " + to_string(parameters.cycles) + "\n";
+    char SCPI_BurstCycles[256];
+    string_to_char_array(burst, SCPI_BurstCycles);
+    SendCommand(SCPI_BurstCycles);
 };
 //Start source
 //Output: boolean success/fail flag (true=success)

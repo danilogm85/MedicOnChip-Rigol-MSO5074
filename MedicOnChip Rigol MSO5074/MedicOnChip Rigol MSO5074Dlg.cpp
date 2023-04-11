@@ -1154,15 +1154,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
 {
 	SourceChannel gerador1;
 	SourceChannel_parameters source_1;
-	source_1.freq = 60;
+	source_1.freq = 10000;
 	source_1.Id = 1;
 	source_1.v_offset = 1;
 	source_1.v_pp = 2;
 	source_1.wave_type = "RAMP";
-	if (gerador1.is_active(source_1) == true) {
-		gerador1.write_parameters_to_osc(source_1);
-	}
-	else { gerador1.start(source_1.Id);
+	source_1.generatorType = "BURSt";
+	source_1.cycles = 15;
+	source_1.Burst_Type = "NCYCle";
 	gerador1.write_parameters_to_osc(source_1);
-	};
+
 }
