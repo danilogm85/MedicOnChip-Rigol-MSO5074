@@ -12,6 +12,9 @@ CONFIGURAÇÕES DO OSC QUE PODEM SER NECESSÁRIAS:
 RUÍDO ESTÁ DISPARANDO O TRIGGER. COLOCAR TRIGGER EM UMA FONTE NÃO UTILIZADA (ex. D0) E TRIGGAR PELO FORCE???
 -Nesse caso, temos que colocar um pull down no D0 para garantir que ele não trigue nada
 -PRÉ TRIGGER?
+
+-APLICAÇÃO DE SINAL:
+NÃO DA PRA DAR O MANUAL TRIGGER REMOTAMENTE???
 */
 
 #include "pch.h"
@@ -92,6 +95,8 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
     read_values = ini.get("FCC").get("MAX_CURR_EXPECT");
     parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
+
+    parameters.vg_source_params.v_pp = parameters.vg_vector[0];
 
     return parameters;
 }
@@ -407,6 +412,101 @@ unsigned int MeasurementChannel::get_id() {
     return id;
 }
 
+float MeasurementChannel::get_sample_period(ViSession m_vi) {
+    ViByte buf[2048];
+    ViUInt32 cnt = 2048;
+    ViUInt32  readcnt;
+    char* temp;
+    float Ts;
+    //Determina a resolução horizontal
+    viPrintf(m_vi, ":WAVeform:XINCrement?\n");
+    viRead(m_vi, buf, cnt, &readcnt);
+    temp = new char[readcnt];
+    for (int i = 0; i < readcnt; i++)
+        temp[i] = buf[i];
+    Ts = atof(temp);		//Período de amostragem
+    delete[] temp;
+
+    return Ts;
+}   
+
+int MeasurementChannel::read_channel_wave(ViSession m_vi, float* result_buff) {
+    ViByte buf[2048];
+
+    ViUInt32 cnt = 2048;
+    ViUInt32  readcnt;
+
+    char* temp;
+    float Ts;
+    float deltaV;
+    int N;
+    int tam;
+    float* sinal;
+    //float result[2048];
+
+    //Seleciona o canal
+    temp = new char[256];
+    sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel%d\n", id);
+    viPrintf(m_vi, temp);
+    delete[] temp;
+
+    /*
+    //Determina a resolução horizontal
+    viPrintf(m_vi, ":WAVeform:XINCrement?\n");
+    viRead(m_vi, buf, cnt, &readcnt);
+    temp = new char[readcnt];
+    for (int i = 0; i < readcnt; i++)
+        temp[i] = buf[i];
+    Ts = atof(temp);		//Período de amostragem
+    delete[] temp;*/
+
+    //Determina a resolução vertical
+    viPrintf(m_vi, ":WAVeform:YINCrement?\n");
+    viRead(m_vi, buf, cnt, &readcnt);
+    temp = new char[readcnt];
+    for (int i = 0; i < readcnt; i++)
+        temp[i] = buf[i];
+    deltaV = atof(temp);	//Resolução vertical
+    delete[] temp;
+
+    //Lê os dados
+    viPrintf(m_vi, ":WAVeform:DATA?\n");
+    viRead(m_vi, buf, cnt, &readcnt);
+    temp = new char[2];					// Obtém o parâmetro N do cabeçalho
+    sprintf_s(temp, 2, "%c", buf[1]);
+    N = atoi(temp);
+    delete[] temp;
+
+    temp = new char[N + 1];				// Obtém o tamanho do buffer de dados
+    for (int i = 0; i < N; i++)
+        temp[i] = buf[2 + i];
+    temp[N] = '\n';
+    tam = atoi(temp);
+    delete[] temp;
+
+    /*
+    CString lixo;						// Imprime o tamanho
+    lixo.Format(_T("%d"), tam);
+    GetDlgItem(IDC_EDIT_RCVD_MSG)->SetWindowTextW(lixo);
+    */
+
+    //std::ofstream myfile;
+    //myfile.open("example1.csv");
+
+   // result_buff = new float[tam];				// Aloca o buffer e preenche
+    for (int i = 0; i < tam; i++) {
+        result_buff[i] = (buf[2 + N + i] - 127) * deltaV;
+        //result[i] = sinal[i];
+        //myfile  << sinal[i] << "\n";
+    }
+
+    //myfile.close();
+
+    //delete[] sinal;
+
+    return tam;
+}
+
 //--------------End of  MeasurementChannel Class functions------------------------
 //--------------Begin of SourceChannel Class functions------------------------
 
@@ -532,6 +632,11 @@ bool SourceChannel::stop(int Source_ID)
     SendCommand(SCPI_command);
     return false;
 };
+/*
+bool SourceChannel::burst(int Source_ID)
+{
+
+}*/
 
 //--------------End of  SourceChannel Class functions------------------------
 //--------------Begin of auxiliar functions----------------------------------------

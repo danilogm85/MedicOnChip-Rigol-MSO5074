@@ -4,10 +4,12 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include "MedicOnChip Rigol MSO5074Dlg.h"
 #include "mini/ini.h"
 
 #define MIN "MIN"
 #define MAX "MAX"
+#define NUM_MEDIAS 10
 
 const struct waves{
 	std::string RAMP = "RAMP";
@@ -96,6 +98,8 @@ public:
 	bool on();															//ID 17
 	bool off();															//ID 18
 	unsigned int get_id();
+	int read_channel_wave(ViSession m_vi, float* result_buff);
+	float get_sample_period(ViSession m_vi);
 };
 
 class SourceChannel : public TestHandler
@@ -117,6 +121,7 @@ public:
 	void Burst_Cycles_write_to_osc(SourceChannel_parameters parameters);
 	bool start(int Source_ID);											//ID 22
 	bool stop(int Source_ID);											//ID 23
+	//bool burst(int Source_ID);
 };
 
 void string_to_char_array(std::string str, char* buffer);

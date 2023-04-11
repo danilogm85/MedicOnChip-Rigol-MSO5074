@@ -11,6 +11,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <filesystem>
+namespace fs = std::filesystem;
 //#define _USE_MATH_DEFINES
 //#include <math.h>
 
@@ -18,9 +20,20 @@
 #define new DEBUG_NEW
 #endif
 
+
 TestHandler tester;
 bool started = false;
 bool stopped = false;
+FCC_parameters results = tester.get_fcc_parameters();
+//Set measurement channels
+MeasurementChannel vds_meas(results.vds_meas_params.Id);
+MeasurementChannel current_meas(results.current_meas_params.Id);
+Trigger_parameters trigger_parameters;
+SourceChannel vds_source, vg_source;
+int burst_count = 0;
+int vg_index = 0;
+std::string serial_number = "123abc";
+
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx
@@ -365,8 +378,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
-				FCC_parameters results;
-				results = tester.get_fcc_parameters();
+
 
 				//Debugging:
 				//std::string parameters_log;
@@ -378,20 +390,18 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//UpdateData(TRUE);
 				//m_receive = parameters_log.c_str();
 				//UpdateData(FALSE);
-
+				
 				//Set time scale
 				tester.set_t_scale(results.t_scale);
 				//Set measurement channels
-				MeasurementChannel vds_meas(results.vds_meas_params.Id);
-				MeasurementChannel current_meas(results.current_meas_params.Id);
 				vds_meas.write_parameters_to_osc(results.vds_meas_params);
 				current_meas.write_parameters_to_osc(results.current_meas_params);
 				//Set trigger
-				Trigger_parameters trigger_parameters;
 				trigger_parameters.source = "CHAN1";
 				tester.send_trigger_parameters(trigger_parameters);
 				//Set Source channels
-				SourceChannel vds_source, vg_source;
+				vg_index = 0;
+				fs::create_directory("vg0");
 				vds_source.write_parameters_to_osc(results.vds_source_params);
 				vg_source.write_parameters_to_osc(results.vg_source_params);
 
@@ -416,11 +426,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
 
-				string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				SendCommand(buff);
-
-				vds_source.start(1);
+				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
+				//SendCommand(buff);
 				vg_source.start(2);
+				vds_source.start(1);
 
 				/*Isso não funciona porque o loop de tempo indeterminado trava a interface.Vamos ter que fazer por TIMER
 				while (tester.read_trigger_status() != "RUN") {
@@ -439,7 +448,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				m_receive = "foi";
 				UpdateData(FALSE);*/
 				
-				//SaveDatatoCSV();
+				//
+				//eDatatoCSV();
 
 				//UpdateData(TRUE);
 				//m_receive = tester.log_string.c_str();
@@ -603,7 +613,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	CString temp1, temp2;
 	float soma, media;
 	int tam;
-
+	UpdateData(TRUE);
+	m_receive = "1";
+	UpdateData(FALSE);
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
 	case ID_TIMER_FCC:
@@ -634,20 +646,97 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	UpdateData(TRUE);
 	m_receive = tester.read_trigger_status().c_str();
 	UpdateData(FALSE);*/
+	UpdateData(TRUE);
+	m_receive = "2";
+	UpdateData(FALSE);
 
 	if (tester.read_trigger_status() == "RUN\n") {
 		started = true;
 		stopped = false;
+		UpdateData(TRUE);
+		m_receive = "RUN";
+		UpdateData(FALSE);
 	}
 	else if (started && (tester.read_trigger_status() == "STOP\n")) {
 		started = false;
 		stopped = true;
+		UpdateData(TRUE);
+		m_receive = "opa parou";
+		UpdateData(FALSE);
 	}
 
 	if (stopped) {
 		UpdateData(TRUE);
 		m_receive = "TERMINOU";
 		UpdateData(FALSE);
+
+		if (vg_index < results.vg_vector.size()) {
+			if (burst_count < NUM_MEDIAS) {
+
+				vds_source.stop(1);
+				vg_source.stop(2);
+
+				std::ofstream myfile;
+
+				std::string path = "vg" + std::to_string(vg_index) + "/results" + std::to_string(burst_count) + ".csv";
+
+				myfile.open(path);
+				myfile << "t,vds,corrente\n";
+
+				float vds_result_pointer[2058] = { 0 };
+				float current_result_pointer[2058] = { 0 };
+				//result_pointer = new float;
+				//float wave_vds[2048];
+				float Ts = vds_meas.get_sample_period(m_vi);
+				int tam_vds = vds_meas.read_channel_wave(m_vi, &vds_result_pointer[0]);
+				int tam_current = current_meas.read_channel_wave(m_vi, &current_result_pointer[0]);
+				int tam = 0;
+
+				if (tam_vds >= tam_current) {
+					tam = tam_vds;
+				}
+				else {
+					tam = tam_current;
+				}
+
+				for (int i = 0; i < tam; i++) {
+					//wave_vds[i] = *(result_pointer + i);
+					myfile << Ts * i << "," << vds_result_pointer[i] << "," << current_result_pointer[i] << "\n";
+				}
+
+				burst_count++;
+
+				//Prepara próxima aquisição
+				char buff[10] = { 0 };
+
+				string_to_char_array(sys_commands.SINGLE, &buff[0]);
+				SendCommand(buff);
+
+				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
+				//SendCommand(buff);
+				vg_source.start(2);
+				vds_source.start(1);
+
+			}
+			else {
+				burst_count = 0;
+				vg_index++;
+				results.vg_source_params.v_pp = results.vg_vector[vg_index];
+				vg_source.write_parameters_to_osc(results.vg_source_params);
+				std::string vg = "vg" + std::to_string(vg_index);
+				fs::create_directory(vg);
+				//OnBnClickedButtonFCC();
+			}
+		}
+		else {
+			vg_index = 0;
+			vg_source.stop(2);
+			vds_source.stop(1);
+			OnBnClickedButtonFCC();
+		}
+		//delete[] result_pointer;
+		//myfile.close();
+
 		//SaveDatatoCSV();
 	}	
 	
@@ -711,20 +800,20 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 
 void CMedicOnChipRigolMSO5074Dlg::SaveDatatoCSV()
 {
-	std::string read1 = ":SOURce1:OUTPut?/n";
+	std::string read1 = ":SOURce1:OUTPut?\n";
 	char SCPI_command[256];
 	string_to_char_array(read1, SCPI_command);
 	read1 = readOsciloscope(SCPI_command);
 
-	std::string read2 = ":SOURce2:OUTPut?/n";
+	std::string read2 = ":SOURce2:OUTPut?\n";
 	string_to_char_array(read2, SCPI_command);
 	read2 = readOsciloscope(SCPI_command);
 
-	std::string read3 = ":SOURce3:OUTPut?/n";
+	std::string read3 = ":SOURce3:OUTPut?\n";
 	string_to_char_array(read3, SCPI_command);
 	read3 = readOsciloscope(SCPI_command);
 
-	std::string read4 = ":SOURce4:OUTPut?/n";
+	std::string read4 = ":SOURce4:OUTPut?\n";
 	string_to_char_array(read4, SCPI_command);
 	read4 = readOsciloscope(SCPI_command);
 
