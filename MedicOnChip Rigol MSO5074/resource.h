@@ -9,6 +9,7 @@
 #define IDR_MAINFRAME                   128
 #define IDD_DIALOG_FCC                  130
 #define IDD_DIALOG_FCS                  132
+#define IDD_DIALOG_SN_PROMPT            142
 #define IDC_COMBO1                      1000
 #define IDC_BUTTON_ADQUIRIR             1001
 #define IDC_BUTTON_SEND_AND_READ        1002
@@ -62,14 +63,16 @@
 #define IDC_BUTTON6                     1034
 #define IDC_BUTTON7                     1035
 #define IDC_BUTTON8                     1036
+#define IDC_EDIT1                       1037
+#define IDC_EDIT_SN                     1037
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        134
+#define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1037
+#define _APS_NEXT_CONTROL_VALUE         1038
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -12,6 +12,8 @@
 #include <string>
 #include <fstream>
 #include <filesystem>
+#include <chrono>
+#include <time.h>
 namespace fs = std::filesystem;
 //#define _USE_MATH_DEFINES
 //#include <math.h>
@@ -24,6 +26,7 @@ namespace fs = std::filesystem;
 TestHandler tester;
 bool started = false;
 bool stopped = false;
+bool force = false;
 FCC_parameters results = tester.get_fcc_parameters();
 //Set measurement channels
 MeasurementChannel vds_meas(results.vds_meas_params.Id);
@@ -32,7 +35,8 @@ Trigger_parameters trigger_parameters;
 SourceChannel vds_source, vg_source;
 int burst_count = 0;
 int vg_index = 0;
-std::string serial_number = "123abc";
+CString database_path = CString("database/");
+std::string result_path = "";
 
 // CAboutDlg dialog used for App About
 
@@ -365,7 +369,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 
 	if (!m_bAquisicaoAtiva)
 	{
-		if (m_FCCParametersDlg.DoModal() == IDOK) {
+		if (m_SNPrompt.DoModal() == IDOK) {
 			if (iniciarAquisicao()) {
 				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
@@ -373,8 +377,31 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("Encerrar"));
 
+				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
+				time_t tt;
+				tt = std::chrono::system_clock::to_time_t(today);
+				char str[26];
+				
+				ctime_s(str, sizeof str, &tt);
+				std::string date_str = "";
 
+				for (int i = 0; i < 20;i++) {
+					if (str[i + 4] == ' ' || str[i + 4] == ':') {
+						date_str += '-';
+					}
+					else {
+						date_str += str[i + 4];
+					}
+				}
 
+				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/" + date_str.c_str() + "/";
+				result_path = CStringA(results_path);
+				if (!fs::exists(result_path)) {
+					fs::create_directories(result_path);
+				}
+
+				m_SNPrompt.m_Serial_Number = "";
+				
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
@@ -401,7 +428,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				tester.send_trigger_parameters(trigger_parameters);
 				//Set Source channels
 				vg_index = 0;
-				fs::create_directory("vg0");
+				//fs::create_directory("vg0");
 				vds_source.write_parameters_to_osc(results.vds_source_params);
 				vg_source.write_parameters_to_osc(results.vg_source_params);
 
@@ -613,9 +640,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	CString temp1, temp2;
 	float soma, media;
 	int tam;
-	UpdateData(TRUE);
-	m_receive = "1";
-	UpdateData(FALSE);
+
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
 	case ID_TIMER_FCC:
@@ -642,27 +667,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	default:
 		break;
 	}
-	/*
-	UpdateData(TRUE);
-	m_receive = tester.read_trigger_status().c_str();
-	UpdateData(FALSE);*/
-	UpdateData(TRUE);
-	m_receive = "2";
-	UpdateData(FALSE);
 
 	if (tester.read_trigger_status() == "RUN\n") {
 		started = true;
 		stopped = false;
-		UpdateData(TRUE);
-		m_receive = "RUN";
-		UpdateData(FALSE);
 	}
 	else if (started && (tester.read_trigger_status() == "STOP\n")) {
 		started = false;
 		stopped = true;
-		UpdateData(TRUE);
-		m_receive = "opa parou";
-		UpdateData(FALSE);
 	}
 
 	if (stopped) {
@@ -678,7 +690,17 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 				std::ofstream myfile;
 
-				std::string path = "vg" + std::to_string(vg_index) + "/results" + std::to_string(burst_count) + ".csv";
+				std::string path = result_path + "vg" + std::to_string(vg_index);
+
+				UpdateData(TRUE);
+				m_receive = path.c_str();
+				UpdateData(FALSE);
+
+				if (!fs::exists(path)) {
+					fs::create_directories(path);
+				}
+
+				path+= "/results" + std::to_string(burst_count) + ".csv";
 
 				myfile.open(path);
 				myfile << "t,vds,corrente\n";
@@ -705,26 +727,41 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 
 				burst_count++;
+				
+				//if ( (vg_index == results.vg_vector.size() - 1) && ((burst_count == NUM_MEDIAS)) )	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
+				//if (burst_count != NUM_MEDIAS)
+				//{
+					//Prepara próxima aquisição
+					char buff[10] = { 0 };
 
-				//Prepara próxima aquisição
-				char buff[10] = { 0 };
+					string_to_char_array(sys_commands.SINGLE, &buff[0]);
+					SendCommand(buff);
 
-				string_to_char_array(sys_commands.SINGLE, &buff[0]);
-				SendCommand(buff);
-
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
-				vg_source.start(2);
-				vds_source.start(1);
-
+					//string_to_char_array(sys_commands.TFORCE, &buff[0]);
+					//SendCommand(buff);
+					vg_source.start(2);
+					vds_source.start(1);
+					force = false;
+				//}
+				//else {
+				//	force = true;
+				//}
 			}
 			else {
 				burst_count = 0;
 				vg_index++;
-				results.vg_source_params.v_pp = results.vg_vector[vg_index];
-				vg_source.write_parameters_to_osc(results.vg_source_params);
-				std::string vg = "vg" + std::to_string(vg_index);
-				fs::create_directory(vg);
+				if (vg_index < results.vg_vector.size()) {
+					results.vg_source_params.v_pp = results.vg_vector[vg_index];
+					vg_source.write_parameters_to_osc(results.vg_source_params);
+
+					//vg_source.start(2);
+					//vds_source.start(1);
+				}
+				//std::string vg = result_path + "vg" + std::to_string(vg_index);
+				//UpdateData(TRUE);
+				//m_receive = vg.c_str();
+				//UpdateData(FALSE);
+				//fs::create_directory(result_path+vg);
 				//OnBnClickedButtonFCC();
 			}
 		}
@@ -797,7 +834,7 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 	return true;
 }
 
-
+/*
 void CMedicOnChipRigolMSO5074Dlg::SaveDatatoCSV()
 {
 	std::string read1 = ":SOURce1:OUTPut?\n";
@@ -1011,7 +1048,7 @@ void CMedicOnChipRigolMSO5074Dlg::SaveDatatoCSV()
 	delete[] sinal3;
 	delete[] sinal4;
 }
-
+*/
 // Lê os dados do canal especificado e imprime no gráfico
 void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 {

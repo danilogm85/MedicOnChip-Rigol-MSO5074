@@ -8,6 +8,7 @@
 #include "JanelaDoGrafico.h"
 #include "FCCParametersDlg.h"
 #include "FCSParametersDlg.h"
+#include "SN_PROMPT.h"
 //#include "TestHandler.h"
 #include <string>
 //#define MAX_CANAIS			4
@@ -63,6 +64,7 @@ protected:
 	ViFindList m_list;
 	CFCCParametersDlg m_FCCParametersDlg;
 	CFCSParametersDlg m_FCSParametersDlg;
+	SN_PROMPT m_SNPrompt;
 
 public:
 	afx_msg void OnBnClickedButtonSendAndRead();
