@@ -512,12 +512,18 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
 */	
 				//Ativa o timer
-				SetTimer(ID_TIMER_FCC, 550, NULL);
+				UpdateData(TRUE);
+				m_receive = "LIGUEI TIMER FCC";
+				UpdateData(FALSE);
+				SetTimer(ID_TIMER_FCC, 100, NULL);
 			}
 		}
 	}
 	else
 	{
+		UpdateData(TRUE);
+		m_receive = "matei";
+		UpdateData(FALSE);
 		KillTimer(ID_TIMER_FCC);
 /*
 		//Desliga os geradores de sinais
@@ -606,7 +612,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
 				//Ativa o timer
-				SetTimer(ID_TIMER_FCS, 1000, NULL);
+				UpdateData(TRUE);
+				m_receive = "ativei FCS";
+				UpdateData(FALSE);
+				//SetTimer(ID_TIMER_FCS, 1000, NULL);
 			}
 		}
 	}
@@ -636,18 +645,89 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 // Mensagens dos timers
 void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 {
+	std::string trg_status = tester.read_trigger_status();
 	// TODO: Add your message handler code here and/or call default
 	CString temp1, temp2;
 	float soma, media;
 	int tam;
+	float Ts;
+	int tam_vds;
+	int tam_current;
+	int tam_fcc = 0;
+	std::ofstream myfile;
+	char buff[10] = { 0 };
 
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
 	case ID_TIMER_FCC:
-		for(int i=1; i<=m_numCanais; i++)
-			leDadosCanal(i);
+		if (trg_status == "RUN\n") {
+			started = true;
+			stopped = false;
+		}
+		else if (started && (trg_status == "STOP\n")) {
+			started = false;
+			stopped = true;
+		}
+		
+		if (stopped) {
+			if (vg_index < results.vg_vector.size()) {
+				if (burst_count < NUM_MEDIAS) {
+					vds_source.stop(1);
+					vg_source.stop(2);
+					std::string path = result_path + "vg" + std::to_string(vg_index);
+					if (!fs::exists(path)) {
+						fs::create_directories(path);
+					}
+					path += "/results" + std::to_string(burst_count) + ".csv";
+					myfile.open(path);
+					myfile << "t,vds,corrente\n";
+					Ts = vds_meas.get_sample_period(m_vi);
+					leDadosCanal(vds_meas.get_id());
+					leDadosCanal(current_meas.get_id());
+					tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
+					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
+					if (tam_vds >= tam_current) {
+						tam_fcc = tam_vds;
+					}
+					else {
+						tam_fcc = tam_current;
+					}
+					for (int i = 0; i < tam_fcc; i++) {
+						myfile << Ts * i << "," << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << "," << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << "\n";
+					}
+					burst_count++;
+					if (burst_count != NUM_MEDIAS)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
+					{
+						string_to_char_array(sys_commands.SINGLE, &buff[0]);
+						SendCommand(buff);
+						vg_source.start(2);
+						vds_source.start(1);
+						force = false;
+					}
+				}
+				else {
+					burst_count = 0;
+					vg_index++;
+					if (vg_index < results.vg_vector.size()) {
+						results.vg_source_params.v_pp = results.vg_vector[vg_index];
+						vg_source.write_parameters_to_osc(results.vg_source_params);
+						string_to_char_array(sys_commands.SINGLE, &buff[0]);
+						SendCommand(buff);
+						vg_source.start(2);
+						vds_source.start(1);
+						stopped = false;
+						started = false;
+					}
+				}
+			}
+			else {
+				vg_index = 0;
+				vg_source.stop(2);
+				vds_source.stop(1);
+				OnBnClickedButtonFCC();
+			}
+		}
 		break;
-
 	case ID_TIMER_FCS:
 		for (int i = 1; i <= m_numCanais; i++) {
 			leDadosCanal(i);
@@ -667,115 +747,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	default:
 		break;
 	}
-
-	if (tester.read_trigger_status() == "RUN\n") {
-		started = true;
-		stopped = false;
-	}
-	else if (started && (tester.read_trigger_status() == "STOP\n")) {
-		started = false;
-		stopped = true;
-	}
-
-	if (stopped) {
-		UpdateData(TRUE);
-		m_receive = "TERMINOU";
-		UpdateData(FALSE);
-
-		if (vg_index < results.vg_vector.size()) {
-			if (burst_count < NUM_MEDIAS) {
-
-				vds_source.stop(1);
-				vg_source.stop(2);
-
-				std::ofstream myfile;
-
-				std::string path = result_path + "vg" + std::to_string(vg_index);
-
-				UpdateData(TRUE);
-				m_receive = path.c_str();
-				UpdateData(FALSE);
-
-				if (!fs::exists(path)) {
-					fs::create_directories(path);
-				}
-
-				path+= "/results" + std::to_string(burst_count) + ".csv";
-
-				myfile.open(path);
-				myfile << "t,vds,corrente\n";
-
-				float vds_result_pointer[2058] = { 0 };
-				float current_result_pointer[2058] = { 0 };
-				//result_pointer = new float;
-				//float wave_vds[2048];
-				float Ts = vds_meas.get_sample_period(m_vi);
-				int tam_vds = vds_meas.read_channel_wave(m_vi, &vds_result_pointer[0]);
-				int tam_current = current_meas.read_channel_wave(m_vi, &current_result_pointer[0]);
-				int tam = 0;
-
-				if (tam_vds >= tam_current) {
-					tam = tam_vds;
-				}
-				else {
-					tam = tam_current;
-				}
-
-				for (int i = 0; i < tam; i++) {
-					//wave_vds[i] = *(result_pointer + i);
-					myfile << Ts * i << "," << vds_result_pointer[i] << "," << current_result_pointer[i] << "\n";
-				}
-
-				burst_count++;
-				
-				//if ( (vg_index == results.vg_vector.size() - 1) && ((burst_count == NUM_MEDIAS)) )	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
-				//if (burst_count != NUM_MEDIAS)
-				//{
-					//Prepara próxima aquisição
-					char buff[10] = { 0 };
-
-					string_to_char_array(sys_commands.SINGLE, &buff[0]);
-					SendCommand(buff);
-
-					//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-					//SendCommand(buff);
-					vg_source.start(2);
-					vds_source.start(1);
-					force = false;
-				//}
-				//else {
-				//	force = true;
-				//}
-			}
-			else {
-				burst_count = 0;
-				vg_index++;
-				if (vg_index < results.vg_vector.size()) {
-					results.vg_source_params.v_pp = results.vg_vector[vg_index];
-					vg_source.write_parameters_to_osc(results.vg_source_params);
-
-					//vg_source.start(2);
-					//vds_source.start(1);
-				}
-				//std::string vg = result_path + "vg" + std::to_string(vg_index);
-				//UpdateData(TRUE);
-				//m_receive = vg.c_str();
-				//UpdateData(FALSE);
-				//fs::create_directory(result_path+vg);
-				//OnBnClickedButtonFCC();
-			}
-		}
-		else {
-			vg_index = 0;
-			vg_source.stop(2);
-			vds_source.stop(1);
-			OnBnClickedButtonFCC();
-		}
-		//delete[] result_pointer;
-		//myfile.close();
-
-		//SaveDatatoCSV();
-	}	
 	
 	CDialogEx::OnTimer(nIDEvent);
 }

@@ -437,7 +437,7 @@ int MeasurementChannel::read_channel_wave(ViSession m_vi, float* result_buff) {
     ViUInt32  readcnt;
 
     char* temp;
-    float Ts;
+    //float Ts;
     float deltaV;
     int N;
     int tam;
