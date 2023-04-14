@@ -49,9 +49,9 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     //Create and setup parameters struct
     FCC_parameters parameters;
     parameters.vds_source_params.Id = 1;
-    parameters.vds_source_params.wave_type = waves.RAMP;
+    parameters.vds_source_params.wave_type = "RAMP";
     parameters.vg_source_params.Id = 2;
-    parameters.vg_source_params.wave_type = waves.DC;
+    parameters.vg_source_params.wave_type = "DC";
     parameters.vds_meas_params.Id = 1;
     parameters.current_meas_params.Id = 2;
 
@@ -96,8 +96,8 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     read_values = ini.get("FCC").get("MAX_CURR_EXPECT");
     parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
 
-    parameters.vg_source_params.v_pp = parameters.vg_vector[0];
-
+   // parameters.vg_source_params.v_pp = parameters.vg_vector[0];
+    parameters.vg_source_params.v_offset = parameters.vg_vector[0];
     return parameters;
 }
 

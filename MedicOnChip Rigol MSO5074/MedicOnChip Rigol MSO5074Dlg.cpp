@@ -414,9 +414,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.v_pp) + "Vpp, Offset de " + std::to_string(results.vds_source_params.v_offset);
 				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.freq) + " Hz";
 
-				//UpdateData(TRUE);
-				//m_receive = parameters_log.c_str();
-				//UpdateData(FALSE);
+
 				
 				//Set time scale
 				tester.set_t_scale(results.t_scale);
@@ -429,6 +427,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//Set Source channels
 				vg_index = 0;
 				//fs::create_directory("vg0");
+
 				vds_source.write_parameters_to_osc(results.vds_source_params);
 				vg_source.write_parameters_to_osc(results.vg_source_params);
 
@@ -512,18 +511,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
 */	
 				//Ativa o timer
-				UpdateData(TRUE);
-				m_receive = "LIGUEI TIMER FCC";
-				UpdateData(FALSE);
-				SetTimer(ID_TIMER_FCC, 100, NULL);
+				SetTimer(ID_TIMER_FCC, 1000, NULL);
 			}
 		}
 	}
 	else
 	{
-		UpdateData(TRUE);
-		m_receive = "matei";
-		UpdateData(FALSE);
 		KillTimer(ID_TIMER_FCC);
 /*
 		//Desliga os geradores de sinais
@@ -612,9 +605,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
 				//Ativa o timer
-				UpdateData(TRUE);
-				m_receive = "ativei FCS";
-				UpdateData(FALSE);
 				//SetTimer(ID_TIMER_FCS, 1000, NULL);
 			}
 		}
@@ -709,7 +699,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					burst_count = 0;
 					vg_index++;
 					if (vg_index < results.vg_vector.size()) {
-						results.vg_source_params.v_pp = results.vg_vector[vg_index];
+						results.vg_source_params.v_offset = results.vg_vector[vg_index];
 						vg_source.write_parameters_to_osc(results.vg_source_params);
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
@@ -1153,7 +1143,7 @@ std::string readOsciloscope(char _command[256])
 
 	//Read the results
 	viScanf(vi, "%t\n", &buf);
-	viClose(vi);
+	//viClose(vi);
 	viClose(defaultRM);
 	std::string aux = buf;
 	return  aux;

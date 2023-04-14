@@ -10,13 +10,13 @@
 #define MIN "MIN"
 #define MAX "MAX"
 #define NUM_MEDIAS 2
-
-const struct waves{
+/*
+const struct Waves{
 	std::string RAMP = "RAMP";
 	std::string SQUARE = "SQUARE";
 	std::string DC = "DC";
 } waves;
-
+*/
 const struct sys_commands {	
 	std::string STOP = ":STOP";
 	std::string RUN = ":RUN";
