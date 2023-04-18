@@ -14,6 +14,11 @@
 #include <filesystem>
 #include <chrono>
 #include <time.h>
+#include <vector>
+#include <sstream>
+
+using namespace std;
+using namespace std::filesystem;
 namespace fs = std::filesystem;
 //#define _USE_MATH_DEFINES
 //#include <math.h>
@@ -119,6 +124,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON6, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON7, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton7)
 	ON_BN_CLICKED(IDC_BUTTON8, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8)
+	ON_BN_CLICKED(IDC_BUTTON9, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9)
 END_MESSAGE_MAP()
 
 
@@ -1251,4 +1257,67 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
 	source_1.Burst_Type = "NCYCle";
 	gerador1.write_parameters_to_osc(source_1);
 
+}
+
+void Files_Path_in_Directory(std::filesystem::path path)
+{
+	std::string add = "Danilo ";
+	int i = 1;
+	
+
+	for (const auto& file : std::filesystem::directory_iterator(path)) {
+
+		
+		std::ifstream teste(file.path(), ios::in);
+
+
+		if (teste.is_open()) {
+
+			ofstream newfile((add + to_string(i) + ".csv"), ios::out | ios::app);
+			vector<string> row;
+			string line, word;
+			word.clear();
+
+			while (!teste.eof())
+			{
+				row.clear();
+				getline(teste, line);
+
+				for (int p = 0; p < line.length(); p++) {
+					if (line[p] == ';' || (p==line.length()-1)) {
+						
+						if (p == line.length() - 1) {
+							word = word + line[p];
+						}
+
+							row.push_back(word);
+							word.clear();
+					}
+					else {
+						word = word + line[p];
+					}
+				}
+				for (int i = 0; i < row.size(); i++)
+				{
+					if( i == row.size() - 1 ){
+						newfile << stod(row[i])*2 << "\n";
+					}
+					else {
+						newfile << stod(row[i])*2 << ";";
+					}
+				}		
+				word.clear();
+			}
+			i++;
+			newfile.close();
+		}
+
+	}
+}
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
+{
+	// TODO: Add your control notification handler code here
+	const std::filesystem::path pasta{ "Arquivos csv" };
+	Files_Path_in_Directory(pasta);
 }
