@@ -98,6 +98,31 @@ FCC_parameters TestHandler::get_fcc_parameters(){
 
    // parameters.vg_source_params.v_pp = parameters.vg_vector[0];
     parameters.vg_source_params.v_offset = parameters.vg_vector[0];
+
+    //Finding the greater absolute value of vg
+    float max_mod = 0;
+    for (auto it : parameters.vg_vector) {
+        if (it < 0) {
+            if (it < max_mod) {
+                max_mod = it;
+            }
+        }
+        else {
+            if (it > max_mod) {
+                max_mod = it;
+            }
+        }
+    }
+    
+    //VG measurement parameters
+    parameters.vg_meas_params.Id = 3;
+    if (max_mod != 0) {
+        parameters.vg_meas_params.volts_div = max_mod/2;
+    }
+    else {
+        parameters.vg_meas_params.volts_div = 0.1;
+    }
+
     return parameters;
 }
 

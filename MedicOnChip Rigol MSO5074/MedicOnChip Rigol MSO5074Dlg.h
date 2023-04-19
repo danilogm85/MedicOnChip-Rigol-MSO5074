@@ -78,7 +78,6 @@ protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int);
-	void SaveDatatoCSV();
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
@@ -93,6 +92,7 @@ public:
 	afx_msg void OnBnClickedButton7();
 	afx_msg void OnBnClickedButton8();
 
+	CString m_results_display;
 };
 
 void SendCommand(char command[256]);
