@@ -16,6 +16,8 @@
 #include <time.h>
 #include <vector>
 #include <sstream>
+#define csv_columns 4
+#define cabecalho "t,vds,corrente"
 
 using namespace std;
 using namespace std::filesystem;
@@ -1071,17 +1073,34 @@ int get_CSV_numb_Lines(std::filesystem::path caminho) {
 	lines = lines - 1;
 	return (lines);
 }
+
+int get_File_Lines(std::filesystem::path caminho) {
+	vector<int> totalLines;
+	int aux;
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
+		std::ifstream teste(file.path(), ios::in);
+		totalLines.push_back( get_CSV_numb_Lines( file.path() ) );
+	}
+	aux = totalLines[0];
+	for (int i = 0; i < totalLines.size(); i++)
+	{
+		if (aux!=totalLines[i])
+		{
+			return 0;
+		}
+
+	}
+	return aux;
+}
+
 void Files_Path_in_Directory(std::filesystem::path caminho)
 {
 	std::string add = "Danilo ";
 	int i = 1;
 	int mean = 0;
-	int lines=0;
+	int lines=get_File_Lines(caminho);
 	//double buffer[1000][4] = {};
-	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
-		std::ifstream teste(file.path(), ios::in);
-		lines = get_CSV_numb_Lines(file.path());
-	}
+
 	auto buffer = new double[lines - 1][4];
 	for (int i = 0; i < (lines-1); i++)
 	{
@@ -1156,20 +1175,95 @@ void Files_Path_in_Directory(std::filesystem::path caminho)
 	}
 	delete[] buffer;
 }
+//Função que lê os arquivos .csv de um diretório, calcula a média das curvas
+//associadas, escreve os dados resultantes em um novo arquivo .csv
+//parâmetro: objeto path da biblioteca fylesistem que contém o endereço de onde
+//devemos manipular os dados
+
+void media_CSV_Osciloscopio(std::filesystem::path caminho) {
+
+	int mean = 0;    //iterador p/ calcular o número de arquivos acessados
+	int lines = get_File_Lines(caminho);    //armazena o número de linhas de um arquivo
+	auto buffer = new double[lines - 1][csv_columns]; //buffer de dados da de dados dos arquivos;
+
+	//(lines-1) Uma das linhas é o cabeçalho dos dados, "precisa-lá" exluir	
+	//loop para inicializar a matriz com zeros em todos os indices
+	for (int i = 0; i < (lines - 1); i++)
+	{
+		for (int j = 0; j < csv_columns; j++) {
+			buffer[i][j] = 0;
+		}
+	}
+	//loop que percorre todos arquivos de um diretório, acessa eles e acumula
+	// a soma deles em um Buffer
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
+
+		//acessar arquivo de um endereço no diretório
+		std::ifstream arquivo(file.path(), ios::in);
+		mean++;
+
+
+		if (arquivo.is_open()) {
+
+			vector<string> row;
+			string line, word;
+			word.clear();
+			int iterator = 0;
+
+			while (!arquivo.eof())
+			{
+				row.clear();
+				getline(arquivo, line);
+				if (line == cabecalho) { continue; }
+				else {
+					for (int p = 0; p < line.length(); p++) {
+						if (line[p] == ';' || (p == line.length() - 1)) {
+
+							if (p == line.length() - 1) {
+								word = word + line[p];
+							}
+
+							row.push_back(word);
+							word.clear();
+						}
+						else {
+							word = word + line[p];
+						}
+					}
+					for (int i = 0; i < row.size(); i++)
+					{
+						buffer[iterator][i] = stod(row[i]) + buffer[iterator][i];
+					}
+					word.clear();
+					iterator++;
+				}
+			}
+
+		}
+	}
+	ofstream newfile("Media_Dados_ArquivosDiretorio.csv", ios::out | ios::app);
+	for (int i = 0; i < (lines - 1); i++)
+	{
+		for (int j = 0; j < csv_columns; j++) {
+			if (j == 3) {
+				newfile << (buffer[i][j]) / mean << "\n";
+			}
+			else {
+				newfile << buffer[i][j] / mean << ";";
+			}
+		}
+	}
+	delete[] buffer;
+
+}
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
 {
 	// TODO: Add your control notification handler code here
 	
 	const std::filesystem::path pasta{ "Arquivos csv" };
-	Files_Path_in_Directory(pasta);
+	
+	media_CSV_Osciloscopio(pasta);
 }
 
 
-//Função que lê os arquivos .csv de um diretório, calcula a média das curvas
-//associadas, escreve os dados resultantes em um novo arquivo .csv
-//parâmetro: objeto path da biblioteca fylesistem que contém o endereço de onde
-//devemos manipular os dados
-void media_CSV_Osciloscopio(std::filesystem::path caminho) {
-
-}
