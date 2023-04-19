@@ -1258,66 +1258,104 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
 	gerador1.write_parameters_to_osc(source_1);
 
 }
+int get_CSV_numb_Lines(std::filesystem::path caminho) {
 
-void Files_Path_in_Directory(std::filesystem::path path)
+	int lines=0;
+	string line;
+	
+		std::ifstream teste(caminho, ios::in);
+		if (teste.is_open()) {
+			while (!teste.eof()) {
+				getline(teste, line);
+				lines++;
+			}
+		}
+		teste.close();
+	
+	line.clear();
+	lines = lines - 1;
+	return (lines);
+}
+void Files_Path_in_Directory(std::filesystem::path caminho,double buffer[1000][4])
 {
 	std::string add = "Danilo ";
 	int i = 1;
-	
+	int mean = 0;
+	int lines=0;
 
-	for (const auto& file : std::filesystem::directory_iterator(path)) {
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
 
 		
 		std::ifstream teste(file.path(), ios::in);
+		lines = get_CSV_numb_Lines(file.path());
+
+		mean++;
 
 
 		if (teste.is_open()) {
-
-			ofstream newfile((add + to_string(i) + ".csv"), ios::out | ios::app);
+						
 			vector<string> row;
 			string line, word;
 			word.clear();
+			int iterator = 0;
+
+
 
 			while (!teste.eof())
-			{
-				row.clear();
-				getline(teste, line);
+			{	
+				
+					row.clear();
+					getline(teste, line);
+					if (line == "t,vds,corrente") { continue; }
+					else {
+						for (int p = 0; p < line.length(); p++) {
+							if (line[p] == ';' || (p == line.length() - 1)) {
 
-				for (int p = 0; p < line.length(); p++) {
-					if (line[p] == ';' || (p==line.length()-1)) {
-						
-						if (p == line.length() - 1) {
-							word = word + line[p];
+								if (p == line.length() - 1) {
+									word = word + line[p];
+								}
+
+								row.push_back(word);
+								word.clear();
+							}
+							else {
+								word = word + line[p];
+							}
 						}
-
-							row.push_back(word);
-							word.clear();
+						for (int i = 0; i < row.size(); i++)
+						{
+							buffer[iterator][i] = stod(row[i]) + buffer[iterator][i];
+						}
+						word.clear();
+						iterator++;
 					}
-					else {
-						word = word + line[p];
-					}
-				}
-				for (int i = 0; i < row.size(); i++)
-				{
-					if( i == row.size() - 1 ){
-						newfile << stod(row[i])*2 << "\n";
-					}
-					else {
-						newfile << stod(row[i])*2 << ";";
-					}
-				}		
-				word.clear();
 			}
 			i++;
-			newfile.close();
+
 		}
 
+	}
+	ofstream newfile((add + to_string(i) + ".csv"), ios::out | ios::app);
+	
+	for (int i = 0; i < (lines-1); i++)
+	{
+		for (int j = 0; j < 4; j++) {
+			if(j==3){ 
+				newfile << (buffer[i][j])/mean<<"\n"; 
+				//newfile << lines << "\n";
+			}
+			else {
+				newfile << buffer[i][j]/mean<<";";
+				//newfile <<  lines<< ";";
+			}
+		}
 	}
 }
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
 {
 	// TODO: Add your control notification handler code here
+	double buffer[1000][4] = {};
 	const std::filesystem::path pasta{ "Arquivos csv" };
-	Files_Path_in_Directory(pasta);
+	Files_Path_in_Directory(pasta,buffer);
 }
