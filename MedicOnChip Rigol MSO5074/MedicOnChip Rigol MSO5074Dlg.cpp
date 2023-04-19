@@ -1071,19 +1071,28 @@ int get_CSV_numb_Lines(std::filesystem::path caminho) {
 	lines = lines - 1;
 	return (lines);
 }
-void Files_Path_in_Directory(std::filesystem::path caminho,double buffer[1000][4])
+void Files_Path_in_Directory(std::filesystem::path caminho)
 {
 	std::string add = "Danilo ";
 	int i = 1;
 	int mean = 0;
 	int lines=0;
-
+	//double buffer[1000][4] = {};
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
+		std::ifstream teste(file.path(), ios::in);
+		lines = get_CSV_numb_Lines(file.path());
+	}
+	auto buffer = new double[lines - 1][4];
+	for (int i = 0; i < (lines-1); i++)
+	{
+		for (int j = 0; j < 4; j++) {
+			buffer[i][j] = 0;
+		}
+	}
 	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
 
 		
 		std::ifstream teste(file.path(), ios::in);
-		lines = get_CSV_numb_Lines(file.path());
-
 		mean++;
 
 
@@ -1145,12 +1154,22 @@ void Files_Path_in_Directory(std::filesystem::path caminho,double buffer[1000][4
 			}
 		}
 	}
+	delete[] buffer;
 }
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
 {
 	// TODO: Add your control notification handler code here
-	double buffer[1000][4] = {};
+	
 	const std::filesystem::path pasta{ "Arquivos csv" };
-	Files_Path_in_Directory(pasta,buffer);
+	Files_Path_in_Directory(pasta);
+}
+
+
+//Função que lê os arquivos .csv de um diretório, calcula a média das curvas
+//associadas, escreve os dados resultantes em um novo arquivo .csv
+//parâmetro: objeto path da biblioteca fylesistem que contém o endereço de onde
+//devemos manipular os dados
+void media_CSV_Osciloscopio(std::filesystem::path caminho) {
+
 }
