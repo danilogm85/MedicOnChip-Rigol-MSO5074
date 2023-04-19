@@ -58,6 +58,7 @@ struct FCC_parameters{
 	SourceChannel_parameters vg_source_params;
 	MeasurementChannel_parameters vds_meas_params;
 	MeasurementChannel_parameters current_meas_params;
+	MeasurementChannel_parameters vg_meas_params;
 	float t_scale;
 	float g_tia;
 	float v_tia;

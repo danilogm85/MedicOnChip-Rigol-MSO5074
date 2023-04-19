@@ -36,6 +36,7 @@ FCC_parameters results = tester.get_fcc_parameters();
 //Set measurement channels
 MeasurementChannel vds_meas(results.vds_meas_params.Id);
 MeasurementChannel current_meas(results.current_meas_params.Id);
+MeasurementChannel vg_meas(results.vg_meas_params.Id);
 Trigger_parameters trigger_parameters;
 SourceChannel vds_source, vg_source;
 int burst_count = 0;
@@ -81,8 +82,9 @@ END_MESSAGE_MAP()
 CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MEDICONCHIP_RIGOL_MSO5074_DIALOG, pParent)
 	, m_receive(_T(""))
-	, m_numCanais(2)
+	, m_numCanais(3)
 	, m_bAquisicaoAtiva(FALSE)
+	, m_results_display(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_pwndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
@@ -102,6 +104,7 @@ void CMedicOnChipRigolMSO5074Dlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_COMBO1, m_combox);
 	DDX_Text(pDX, IDC_EDIT_RCVD_MSG, m_receive);
+	DDX_Text(pDX, IDC_RESULTS, m_results_display);
 }
 
 BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
@@ -405,8 +408,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
-
-				m_SNPrompt.m_Serial_Number = "";
 				
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
@@ -427,6 +428,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//Set measurement channels
 				vds_meas.write_parameters_to_osc(results.vds_meas_params);
 				current_meas.write_parameters_to_osc(results.current_meas_params);
+				vg_meas.write_parameters_to_osc(results.vg_meas_params);
 				//Set trigger
 				trigger_parameters.source = "CHAN1";
 				tester.send_trigger_parameters(trigger_parameters);
@@ -454,6 +456,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//Liga canais de medição
 				vds_meas.on();
 				current_meas.on();
+				vg_meas.on();
 
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
@@ -680,6 +683,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					Ts = vds_meas.get_sample_period(m_vi);
 					leDadosCanal(vds_meas.get_id());
 					leDadosCanal(current_meas.get_id());
+					leDadosCanal(vg_meas.get_id());
 					tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
 					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
 					if (tam_vds >= tam_current) {
@@ -689,7 +693,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						tam_fcc = tam_current;
 					}
 					for (int i = 0; i < tam_fcc; i++) {
-						myfile << Ts * i << "," << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << "," << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << "\n";
+						myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
 					}
 					burst_count++;
 					if (burst_count != NUM_MEDIAS)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
@@ -720,6 +724,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				vg_index = 0;
 				vg_source.stop(2);
 				vds_source.stop(1);
+
+				UpdateData(TRUE);
+				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+				UpdateData(FALSE);
+
+				m_SNPrompt.m_Serial_Number = "";
+
 				OnBnClickedButtonFCC();
 			}
 		}
@@ -787,7 +798,6 @@ bool CMedicOnChipRigolMSO5074Dlg::iniciarAquisicao()
 	return true;
 }
 
-
 // Encerra a interface de comunicação
 bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 {
@@ -801,221 +811,6 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 	return true;
 }
 
-/*
-void CMedicOnChipRigolMSO5074Dlg::SaveDatatoCSV()
-{
-	std::string read1 = ":SOURce1:OUTPut?\n";
-	char SCPI_command[256];
-	string_to_char_array(read1, SCPI_command);
-	read1 = readOsciloscope(SCPI_command);
-
-	std::string read2 = ":SOURce2:OUTPut?\n";
-	string_to_char_array(read2, SCPI_command);
-	read2 = readOsciloscope(SCPI_command);
-
-	std::string read3 = ":SOURce3:OUTPut?\n";
-	string_to_char_array(read3, SCPI_command);
-	read3 = readOsciloscope(SCPI_command);
-
-	std::string read4 = ":SOURce4:OUTPut?\n";
-	string_to_char_array(read4, SCPI_command);
-	read4 = readOsciloscope(SCPI_command);
-
-	ViByte buf1[2048];		//unsigned char
-	ViByte buf2[2048];		//unsigned char
-	ViByte buf3[2048];		//unsigned char
-	ViByte buf4[2048];		//unsigned char
-	ViUInt32 cnt = 2048;
-	ViUInt32  readcnt;
-
-	char* temp;
-	float Ts;
-	float deltaV1;
-	float deltaV2;
-	float deltaV3;
-	float deltaV4;
-	int N;
-	int tam;
-	float* sinal1;
-	float* sinal2;
-	float* sinal3;
-	float* sinal4;
-	
-	if (read1 == "1") {
-		//Seleciona o canal
-		temp = new char[256];
-		sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel1\n");
-		viPrintf(m_vi, temp);
-		delete[] temp;
-
-		//Determina a resolução horizontal
-		viPrintf(m_vi, ":WAVeform:XINCrement?\n");
-		viRead(m_vi, buf1, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf1[i];
-		Ts = atof(temp);		//Período de amostragem
-		delete[] temp;
-
-		//Determina a resolução vertical
-		viPrintf(m_vi, ":WAVeform:YINCrement?\n");
-		viRead(m_vi, buf1, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf1[i];
-		deltaV1 = atof(temp);	//Resolução vertical
-		delete[] temp;
-
-		//Lê os dados
-		viPrintf(m_vi, ":WAVeform:DATA?\n");
-		viRead(m_vi, buf1, cnt, &readcnt);
-		temp = new char[2];					// Obtém o parâmetro N do cabeçalho
-		sprintf_s(temp, 2, "%c", buf1[1]);
-		N = atoi(temp);
-		delete[] temp;
-	}
-	//canal2
-	if (read2 == "1") {
-		//Seleciona o canal
-		temp = new char[256];
-		sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel2\n");
-		viPrintf(m_vi, temp);
-		delete[] temp;
-
-		//Determina a resolução horizontal
-		viPrintf(m_vi, ":WAVeform:XINCrement?\n");
-		viRead(m_vi, buf2, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf2[i];
-		Ts = atof(temp);		//Período de amostragem
-		delete[] temp;
-
-		//Determina a resolução vertical
-		viPrintf(m_vi, ":WAVeform:YINCrement?\n");
-		viRead(m_vi, buf2, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf2[i];
-		deltaV2 = atof(temp);	//Resolução vertical
-		delete[] temp;
-
-		//Lê os dados
-		viPrintf(m_vi, ":WAVeform:DATA?\n");
-		viRead(m_vi, buf2, cnt, &readcnt);
-		temp = new char[2];					// Obtém o parâmetro N do cabeçalho
-		sprintf_s(temp, 2, "%c", buf2[1]);
-		N = atoi(temp);
-		delete[] temp;
-	}
-	//canal3
-	if (read3 == "1") {
-		//Seleciona o canal
-		temp = new char[256];
-		sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel3\n");
-		viPrintf(m_vi, temp);
-		delete[] temp;
-
-		//Determina a resolução horizontal
-		viPrintf(m_vi, ":WAVeform:XINCrement?\n");
-		viRead(m_vi, buf3, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf3[i];
-		Ts = atof(temp);		//Período de amostragem
-		delete[] temp;
-
-		//Determina a resolução vertical
-		viPrintf(m_vi, ":WAVeform:YINCrement?\n");
-		viRead(m_vi, buf3, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf3[i];
-		deltaV3 = atof(temp);	//Resolução vertical
-		delete[] temp;
-
-		//Lê os dados
-		viPrintf(m_vi, ":WAVeform:DATA?\n");
-		viRead(m_vi, buf3, cnt, &readcnt);
-		temp = new char[2];					// Obtém o parâmetro N do cabeçalho
-		sprintf_s(temp, 2, "%c", buf3[1]);
-		N = atoi(temp);
-		delete[] temp;
-	}
-	//canal4
-	if (read4 == "1") {
-		//Seleciona o canal
-		temp = new char[256];
-		sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel4\n");
-		viPrintf(m_vi, temp);
-		delete[] temp;
-
-		//Determina a resolução horizontal
-		viPrintf(m_vi, ":WAVeform:XINCrement?\n");
-		viRead(m_vi, buf4, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf4[i];
-		Ts = atof(temp);		//Período de amostragem
-		delete[] temp;
-
-		//Determina a resolução vertical
-		viPrintf(m_vi, ":WAVeform:YINCrement?\n");
-		viRead(m_vi, buf4, cnt, &readcnt);
-		temp = new char[readcnt];
-		for (int i = 0; i < readcnt; i++)
-			temp[i] = buf4[i];
-		deltaV4 = atof(temp);	//Resolução vertical
-		delete[] temp;
-
-		//Lê os dados
-		viPrintf(m_vi, ":WAVeform:DATA?\n");
-		viRead(m_vi, buf4, cnt, &readcnt);
-		temp = new char[2];					// Obtém o parâmetro N do cabeçalho
-		sprintf_s(temp, 2, "%c", buf4[1]);
-		N = atoi(temp);
-		delete[] temp;
-	}
-
-
-	temp = new char[N + 1];				// Obtém o tamanho do buffer de dados
-	for (int i = 0; i < N; i++)
-		temp[i] = buf1[2 + i];
-	temp[N] = '\n';
-	tam = atoi(temp);
-	delete[] temp;
-
-	std::ofstream myfile;
-	myfile.open("results.csv");
-	myfile << "t,ch1,ch2,ch3,ch4\n";
-
-	sinal1 = new float[tam];				// Aloca o buffer e preenche
-	sinal2 = new float[tam];
-	sinal3 = new float[tam];
-	sinal4 = new float[tam];
-	for (int i = 0; i < tam; i++) {
-		if (read1 == "1") sinal1[i] = (buf1[2 + N + i] - 127) * deltaV1;
-		else sinal1[i] = 0;
-		if (read2 == "1") sinal2[i] = (buf2[2 + N + i] - 127) * deltaV2;
-		else sinal2[i] = 0;
-		if (read3 == "1") sinal3[i] = (buf3[2 + N + i] - 127) * deltaV3;
-		else sinal3[i] = 0;
-		if (read4 == "1") sinal4[i] = (buf4[2 + N + i] - 127) * deltaV4;
-		else sinal4[i] = 0;
-		myfile << Ts * i << "," << sinal1[i] << "," << sinal2[i] << "," << sinal3[i] << "," << sinal4[i] << "\n";
-	}
-
-	myfile.close();
-
-	//m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
-	//m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam);
-
-	delete[] sinal1;
-	delete[] sinal2;
-	delete[] sinal3;
-	delete[] sinal4;
-}
-*/
 // Lê os dados do canal especificado e imprime no gráfico
 void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 {
