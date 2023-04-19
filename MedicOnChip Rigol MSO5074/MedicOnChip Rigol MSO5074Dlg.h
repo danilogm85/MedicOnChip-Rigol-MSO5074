@@ -93,6 +93,7 @@ public:
 	afx_msg void OnBnClickedButton8();
 
 	CString m_results_display;
+	afx_msg void OnBnClickedButton9();
 };
 
 void SendCommand(char command[256]);
