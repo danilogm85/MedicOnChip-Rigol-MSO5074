@@ -16,6 +16,8 @@
 #include <time.h>
 #include <vector>
 #include <sstream>
+#define csv_columns 4
+#define cabecalho "t,vds,corrente"
 
 using namespace std;
 using namespace std::filesystem;
@@ -1053,66 +1055,215 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
 	gerador1.write_parameters_to_osc(source_1);
 
 }
+int get_CSV_numb_Lines(std::filesystem::path caminho) {
 
-void Files_Path_in_Directory(std::filesystem::path path)
-{
-	std::string add = "Danilo ";
-	int i = 1;
+	int lines=0;
+	string line;
 	
-
-	for (const auto& file : std::filesystem::directory_iterator(path)) {
-
-		
-		std::ifstream teste(file.path(), ios::in);
-
-
+		std::ifstream teste(caminho, ios::in);
 		if (teste.is_open()) {
-
-			ofstream newfile((add + to_string(i) + ".csv"), ios::out | ios::app);
-			vector<string> row;
-			string line, word;
-			word.clear();
-
-			while (!teste.eof())
-			{
-				row.clear();
+			while (!teste.eof()) {
 				getline(teste, line);
-
-				for (int p = 0; p < line.length(); p++) {
-					if (line[p] == ';' || (p==line.length()-1)) {
-						
-						if (p == line.length() - 1) {
-							word = word + line[p];
-						}
-
-							row.push_back(word);
-							word.clear();
-					}
-					else {
-						word = word + line[p];
-					}
-				}
-				for (int i = 0; i < row.size(); i++)
-				{
-					if( i == row.size() - 1 ){
-						newfile << stod(row[i])*2 << "\n";
-					}
-					else {
-						newfile << stod(row[i])*2 << ";";
-					}
-				}		
-				word.clear();
+				lines++;
 			}
-			i++;
-			newfile.close();
+		}
+		teste.close();
+	
+	line.clear();
+	lines = lines - 1;
+	return (lines);
+}
+
+int get_File_Lines(std::filesystem::path caminho) {
+	vector<int> totalLines;
+	int aux;
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
+		std::ifstream teste(file.path(), ios::in);
+		totalLines.push_back( get_CSV_numb_Lines( file.path() ) );
+	}
+	aux = totalLines[0];
+	for (int i = 0; i < totalLines.size(); i++)
+	{
+		if (aux!=totalLines[i])
+		{
+			return 0;
 		}
 
 	}
+	return aux;
+}
+
+void Files_Path_in_Directory(std::filesystem::path caminho)
+{
+	std::string add = "Danilo ";
+	int i = 1;
+	int mean = 0;
+	int lines=get_File_Lines(caminho);
+	//double buffer[1000][4] = {};
+
+	auto buffer = new double[lines - 1][4];
+	for (int i = 0; i < (lines-1); i++)
+	{
+		for (int j = 0; j < 4; j++) {
+			buffer[i][j] = 0;
+		}
+	}
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
+
+		
+		std::ifstream teste(file.path(), ios::in);
+		mean++;
+
+
+		if (teste.is_open()) {
+						
+			vector<string> row;
+			string line, word;
+			word.clear();
+			int iterator = 0;
+
+
+
+			while (!teste.eof())
+			{	
+				
+					row.clear();
+					getline(teste, line);
+					if (line == "t,vds,corrente") { continue; }
+					else {
+						for (int p = 0; p < line.length(); p++) {
+							if (line[p] == ';' || (p == line.length() - 1)) {
+
+								if (p == line.length() - 1) {
+									word = word + line[p];
+								}
+
+								row.push_back(word);
+								word.clear();
+							}
+							else {
+								word = word + line[p];
+							}
+						}
+						for (int i = 0; i < row.size(); i++)
+						{
+							buffer[iterator][i] = stod(row[i]) + buffer[iterator][i];
+						}
+						word.clear();
+						iterator++;
+					}
+			}
+			i++;
+
+		}
+
+	}
+	ofstream newfile((add + to_string(i) + ".csv"), ios::out | ios::app);
+	
+	for (int i = 0; i < (lines-1); i++)
+	{
+		for (int j = 0; j < 4; j++) {
+			if(j==3){ 
+				newfile << (buffer[i][j])/mean<<"\n"; 
+				//newfile << lines << "\n";
+			}
+			else {
+				newfile << buffer[i][j]/mean<<";";
+				//newfile <<  lines<< ";";
+			}
+		}
+	}
+	delete[] buffer;
+}
+//Função que lê os arquivos .csv de um diretório, calcula a média das curvas
+//associadas, escreve os dados resultantes em um novo arquivo .csv
+//parâmetro: objeto path da biblioteca fylesistem que contém o endereço de onde
+//devemos manipular os dados
+
+void media_CSV_Osciloscopio(std::filesystem::path caminho) {
+
+	int mean = 0;    //iterador p/ calcular o número de arquivos acessados
+	int lines = get_File_Lines(caminho);    //armazena o número de linhas de um arquivo
+	auto buffer = new double[lines - 1][csv_columns]; //buffer de dados da de dados dos arquivos;
+
+	//(lines-1) Uma das linhas é o cabeçalho dos dados, "precisa-lá" exluir	
+	//loop para inicializar a matriz com zeros em todos os indices
+	for (int i = 0; i < (lines - 1); i++)
+	{
+		for (int j = 0; j < csv_columns; j++) {
+			buffer[i][j] = 0;
+		}
+	}
+	//loop que percorre todos arquivos de um diretório, acessa eles e acumula
+	// a soma deles em um Buffer
+	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
+
+		//acessar arquivo de um endereço no diretório
+		std::ifstream arquivo(file.path(), ios::in);
+		mean++;
+
+
+		if (arquivo.is_open()) {
+
+			vector<string> row;
+			string line, word;
+			word.clear();
+			int iterator = 0;
+
+			while (!arquivo.eof())
+			{
+				row.clear();
+				getline(arquivo, line);
+				if (line == cabecalho) { continue; }
+				else {
+					for (int p = 0; p < line.length(); p++) {
+						if (line[p] == ';' || (p == line.length() - 1)) {
+
+							if (p == line.length() - 1) {
+								word = word + line[p];
+							}
+
+							row.push_back(word);
+							word.clear();
+						}
+						else {
+							word = word + line[p];
+						}
+					}
+					for (int i = 0; i < row.size(); i++)
+					{
+						buffer[iterator][i] = stod(row[i]) + buffer[iterator][i];
+					}
+					word.clear();
+					iterator++;
+				}
+			}
+
+		}
+	}
+	ofstream newfile("Media_Dados_ArquivosDiretorio.csv", ios::out | ios::app);
+	for (int i = 0; i < (lines - 1); i++)
+	{
+		for (int j = 0; j < csv_columns; j++) {
+			if (j == 3) {
+				newfile << (buffer[i][j]) / mean << "\n";
+			}
+			else {
+				newfile << buffer[i][j] / mean << ";";
+			}
+		}
+	}
+	delete[] buffer;
+
 }
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
 {
 	// TODO: Add your control notification handler code here
+	
 	const std::filesystem::path pasta{ "Arquivos csv" };
-	Files_Path_in_Directory(pasta);
+	
+	media_CSV_Osciloscopio(pasta);
 }
+
+
