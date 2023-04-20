@@ -123,7 +123,7 @@ FCC_parameters TestHandler::get_fcc_parameters(){
         parameters.vg_meas_params.volts_div = 0.1;
     }
 
-    return parameters;
+    return parameters;  
 }
 
 //Get trigger parameters. Usefull to check if the parameters were correctly set by send_trigger_parameters() function

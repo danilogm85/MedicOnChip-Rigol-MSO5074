@@ -724,7 +724,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				vg_index = 0;
 				vg_source.stop(2);
 				vds_source.stop(1);
-
+				//COLOCAR FUNÇÃO MÉDIA
 				UpdateData(TRUE);
 				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
 				UpdateData(FALSE);
