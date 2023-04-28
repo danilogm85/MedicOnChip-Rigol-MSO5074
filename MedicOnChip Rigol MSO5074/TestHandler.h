@@ -66,6 +66,34 @@ struct FCC_parameters{
 	std::vector<float> vg_vector;
 };
 
+struct FCS_parameters {
+	SourceChannel_parameters vds_source_params;
+	SourceChannel_parameters vg_source_params;
+	MeasurementChannel_parameters vds_meas_params;
+	MeasurementChannel_parameters current_meas_params;
+	MeasurementChannel_parameters vg_meas_params;
+	float t_scale;
+	float g_tia;
+	float v_tia;
+	//std::map<std::string, float> rg_limits;
+	//std::vector<float> vg_vector;
+	float flat_region_width;
+};
+
+struct FCP_parameters {
+	//SourceChannel_parameters vds_source_params;
+	SourceChannel_parameters vg_source_params;
+	MeasurementChannel_parameters vds_meas_params;
+	//MeasurementChannel_parameters current_meas_params;
+	MeasurementChannel_parameters vg_meas_params;
+	float t_scale;
+	//float g_tia;
+	//float v_tia;
+	//std::map<std::string, float> rg_limits;
+	//std::vector<float> vg_vector;
+	//float flat_region_width;
+};
+
 class TestHandler
 {
 public:
@@ -79,10 +107,12 @@ public:
 	float get_t_scale();									//ID 6
 	void clear_screen();									//ID 7
 	FCC_parameters get_fcc_parameters();					//ID 8
+	FCS_parameters get_fcs_parameters();				
+	FCP_parameters get_fcp_parameters();
 	bool set_osc_to_fcc(FCC_parameters parameters);					//ID 9
-	bool start_fcc();										//ID 10
-	void save_fcc_in_csv(float vg, std::string data);		//ID 11
-	void calculate_fcc_results();							//ID 12
+	//bool start_fcc();										//ID 10
+	//void save_fcc_in_csv(float vg, std::string data);		//ID 11
+	//void calculate_fcc_results();							//ID 12
 	std::string log_string = "";
 };
 

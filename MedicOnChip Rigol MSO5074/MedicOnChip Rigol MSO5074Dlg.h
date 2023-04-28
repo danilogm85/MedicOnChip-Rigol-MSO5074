@@ -9,6 +9,7 @@
 #include "FCCParametersDlg.h"
 #include "FCSParametersDlg.h"
 #include "SN_PROMPT.h"
+#include "mini/ini.h"
 //#include "TestHandler.h"
 #include <string>
 //#define MAX_CANAIS			4
@@ -16,8 +17,7 @@
 #define ID_TIMER_ADQUIRIR	1
 #define ID_TIMER_FCC		2
 #define ID_TIMER_FCS		3
-
-
+#define ID_TIMER_FCP		4
 
 // CMedicOnChipRigolMSO5074Dlg dialog
 class CMedicOnChipRigolMSO5074Dlg : public CDialogEx
@@ -94,6 +94,7 @@ public:
 
 	CString m_results_display;
 	afx_msg void OnBnClickedButton9();
+	afx_msg void OnBnClickedButtonFcp();
 };
 
 void SendCommand(char command[256]);

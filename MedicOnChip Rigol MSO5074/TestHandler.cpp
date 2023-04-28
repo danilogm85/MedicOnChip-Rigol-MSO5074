@@ -24,9 +24,7 @@ NÃO DA PRA DAR O MANUAL TRIGGER REMOTAMENTE???
 
 //#include biblioteca do hilton
 using namespace std;
-
 vector <string> customSplit(string str, char separator);
-void string_to_char_array(std::string str, char* buffer);
 
 //Constructors and destructors. Do we need them?
 TestHandler::TestHandler(){};
@@ -77,9 +75,9 @@ FCC_parameters TestHandler::get_fcc_parameters(){
 
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
-    parameters.vds_source_params.cycles = stof(ini.get("FCC").get("CYCLES"));
-    parameters.vds_source_params.freq = stof(ini.get("FCC").get("FREQ"));
-    parameters.t_scale = parameters.vds_source_params.cycles /(parameters.vds_source_params.freq*10);   //Divides by ten because there are ten divisions in osciloscope time scale
+    parameters.vds_source_params.cycles = stoul(ini.get("FCC").get("CYCLES"));
+    parameters.vds_source_params.freq = stoul(ini.get("FCC").get("FREQ"));
+    parameters.t_scale = float(parameters.vds_source_params.cycles) / (float(parameters.vds_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
     
     //Read RG_LIMITS
     read_values = ini.get("FCC").get("RG_LIMITS");
@@ -101,15 +99,15 @@ FCC_parameters TestHandler::get_fcc_parameters(){
 
     //Finding the greater absolute value of vg
     float max_mod = 0;
-    for (auto it : parameters.vg_vector) {
-        if (it < 0) {
-            if (it < max_mod) {
-                max_mod = it;
+    for (int it = 0 ; it < parameters.vg_vector.size() ; it++) {
+        if (parameters.vg_vector[it] < 0) {
+            if (parameters.vg_vector[it] < max_mod) {
+                max_mod = -parameters.vg_vector[it];
             }
         }
         else {
-            if (it > max_mod) {
-                max_mod = it;
+            if (parameters.vg_vector[it] > max_mod) {
+                max_mod = parameters.vg_vector[it];
             }
         }
     }
@@ -120,10 +118,120 @@ FCC_parameters TestHandler::get_fcc_parameters(){
         parameters.vg_meas_params.volts_div = max_mod/2;
     }
     else {
-        parameters.vg_meas_params.volts_div = 0.1;
+        parameters.vg_meas_params.volts_div = 0.01;
     }
 
     return parameters;  
+}
+
+FCS_parameters TestHandler::get_fcs_parameters() {
+    //Reading config file
+    mINI::INIFile file("config.ini");
+    mINI::INIStructure ini;
+    file.read(ini);
+
+    //Create and setup parameters struct
+    FCS_parameters parameters;
+    parameters.vds_source_params.Id = 1;
+    parameters.vds_source_params.wave_type = "DC";
+    parameters.vg_source_params.Id = 2;
+    parameters.vg_source_params.wave_type = "RAMP";
+    parameters.vds_meas_params.Id = 1;
+    parameters.current_meas_params.Id = 2;
+    parameters.vg_meas_params.Id = 3;
+
+    //Aux variables
+    string read_values;
+    vector<string> splitted_values;
+
+    //Read Vg values and build vector
+    parameters.vds_source_params.v_pp = 0;
+    parameters.vds_source_params.v_offset = stof(ini.get("FCS").get("VDS"));
+
+    //Read Vg max and min and calculate vpp and voffset
+    read_values = ini.get("FCS").get("VG_SPAN");
+    splitted_values = customSplit(read_values, ';');
+    parameters.vg_source_params.v_pp = stof(splitted_values[1]) - stof(splitted_values[0]);
+    parameters.vg_source_params.v_offset = stof(splitted_values[1]) - parameters.vg_source_params.v_pp / 2;
+    //Vg source will also be measured as a reference in CH1, so we need to setup the measurement channel vertical scale:
+    //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
+    parameters.vg_meas_params.volts_div = stof(splitted_values[1]) / 4; //Vpeak*2/8 = Vpeak/4. We divide by ten because there are 8 divisions
+
+    //Read freq and cycles number and calculates the time scale to set
+    //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
+    parameters.vg_source_params.cycles = stoul(ini.get("FCS").get("CYCLES"));
+    parameters.vg_source_params.freq = stoul(ini.get("FCS").get("FREQ"));
+    parameters.t_scale = float(parameters.vg_source_params.cycles) / (float(parameters.vg_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
+    //log_string = to_string(parameters.vds_source_params.freq);
+
+    //Read transimpedance amp gain and voltage drop
+    parameters.g_tia = stof(ini.get("FCS").get("G_TIA"));
+    parameters.v_tia = stof(ini.get("FCS").get("V_TIA"));
+
+    //Read max expected current to calculate the vertical scale of the channel
+    //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
+    read_values = ini.get("FCS").get("MAX_CURR_EXPECT");
+    parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
+
+    //VDS measurement parameters
+    parameters.vds_meas_params.volts_div = parameters.vds_source_params.v_offset / 2;
+
+    return parameters;
+}
+
+FCP_parameters TestHandler::get_fcp_parameters() {
+    //Reading config file
+    mINI::INIFile file("config.ini");
+    mINI::INIStructure ini;
+    file.read(ini);
+
+    //Create and setup parameters struct
+    FCP_parameters parameters;
+    //parameters.vds_source_params.Id = 1;
+    //parameters.vds_source_params.wave_type = "DC";
+    parameters.vg_source_params.Id = 2;
+    parameters.vg_source_params.wave_type = "SQU";
+    parameters.vds_meas_params.Id = 1;
+    //parameters.current_meas_params.Id = 2;
+    parameters.vg_meas_params.Id = 3;
+
+    //Aux variables
+    string read_values;
+    //vector<string> splitted_values;
+
+    //Read Vg values and build vector
+    //parameters.vds_source_params.v_pp = 0;
+    //parameters.vds_source_params.v_offset = stof(ini.get("FCS").get("VDS"));
+
+    //Read Vg max and min and calculate vpp and voffset
+    //read_values = ini.get("FCS").get("VG_SPAN");
+    //splitted_values = customSplit(read_values, ';');
+    //parameters.vg_source_params.v_pp = stof(splitted_values[1]) - stof(splitted_values[0]);
+    //parameters.vg_source_params.v_offset = stof(splitted_values[1]) - parameters.vg_source_params.v_pp / 2;
+    //Vg source will also be measured as a reference in CH1, so we need to setup the measurement channel vertical scale:
+    //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
+    //parameters.vg_meas_params.volts_div = stof(splitted_values[1]) / 4; //Vpeak*2/8 = Vpeak/4. We divide by ten because there are 8 divisions
+
+    //Read freq and cycles number and calculates the time scale to set
+    //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
+    parameters.vg_source_params.cycles = stoul(ini.get("FCP").get("CYCLES"));
+    parameters.vg_source_params.freq = stoul(ini.get("FCP").get("FREQ"));
+    parameters.t_scale = float(parameters.vg_source_params.cycles) / (float(parameters.vg_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
+    log_string = to_string(parameters.t_scale);
+
+    //Read transimpedance amp gain and voltage drop
+    //parameters.g_tia = stof(ini.get("FCS").get("G_TIA"));
+    //parameters.v_tia = stof(ini.get("FCS").get("V_TIA"));
+
+    //Read max expected current to calculate the vertical scale of the channel
+    //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
+    //read_values = ini.get("FCS").get("MAX_CURR_EXPECT");
+    //parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
+
+    //VDS measurement parameters
+    parameters.vds_meas_params.volts_div = stof(ini.get("FCP").get("MAX_VDS_EXPECT")) / 4;
+
+    return parameters;
 }
 
 //Get trigger parameters. Usefull to check if the parameters were correctly set by send_trigger_parameters() function
@@ -163,7 +271,7 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = trigger + ":" + parameters.mode;
 
     //Set slope
@@ -171,7 +279,7 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = trigger + ":" + parameters.mode;
 
     //Set SOURCE
@@ -179,7 +287,7 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
     command_str = trigger + ":" + parameters.mode;
 
     //Set level
@@ -187,7 +295,7 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    log_string += command_str;
+    //log_string += command_str;
 
     return false;
 }
@@ -200,7 +308,7 @@ string TestHandler::read_trigger_status()
     char SCPI_command[256];
     string_to_char_array(read, SCPI_command);
     read = readOsciloscope(SCPI_command);
-    log_string = read;
+   // log_string = read;
     return read;
 }
 
@@ -289,7 +397,7 @@ bool TestHandler::set_osc_to_fcc(FCC_parameters parameters)
 
     return false;
 }
-
+/*
 //Set SINGLE mode and turn sources on
 //Output: boolean success/fail flag (true=success)
 bool TestHandler::start_fcc()
@@ -306,8 +414,9 @@ void TestHandler::save_fcc_in_csv(float vg, string data){};
 //Generate caracteristic curves and calculate Rg
 //Inputs: to be defined
 //Outputs: to be defined
-void TestHandler::calculate_fcc_results(){};
 
+void TestHandler::calculate_fcc_results(){};
+*/
 //--------------End of TestHandler Class functions---------------------------------
 //--------------Begin of MeasurementChannel Class functions------------------------
 
