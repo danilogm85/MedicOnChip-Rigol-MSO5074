@@ -95,7 +95,7 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
 
    // parameters.vg_source_params.v_pp = parameters.vg_vector[0];
-    parameters.vg_source_params.v_offset = parameters.vg_vector[0];
+    //parameters.vg_source_params.v_offset = parameters.vg_vector[0];
 
     //Finding the greater absolute value of vg
     float max_mod = 0;
@@ -656,7 +656,7 @@ SourceChannel_parameters SourceChannel::read_parameters_from_osc()
 //Output: boolean value, true = channel is on
 bool SourceChannel::is_active(SourceChannel_parameters parameters)
 {
-    string read = ":SOURce" + to_string(parameters.Id) + ":OUTPut?" + "/n";
+    string read = ":SOURce" + to_string(parameters.Id) + ":OUTPut?" + "\n";
     char SCPI_command[256];
     string_to_char_array(read, SCPI_command);
     read = readOsciloscope(SCPI_command);

@@ -23,12 +23,14 @@ const struct sys_commands {
 	std::string SINGLE = ":SINGle";
 	std::string TFORCE = ":TFORce";
 	std::string CLEAR = ":CLEar";
+	std::string MDEPTH = ":ACQuire:MDEPth 1M";
+	std::string HRES = ":ACQuire:TYPE HRES";
 } sys_commands;
 
 struct Trigger_parameters{
 	float level = 0.01;
 	std::string mode = "EDGE";
-	std::string slope = "RFAL";
+	std::string slope = "POS";
 	std::string source = "CHAN1";
 };
 

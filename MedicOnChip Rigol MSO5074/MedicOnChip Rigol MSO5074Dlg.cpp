@@ -17,7 +17,7 @@
 //#include <vector>
 #include <sstream>
 #define csv_columns 4
-#define cabecalho "t,vds,corrente"
+#define cabecalho "t;vds;corrente;vg"
 
 using namespace std;
 using namespace std::filesystem;
@@ -94,6 +94,16 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_pwndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
+
+	char buff[20] = { 0 };
+
+	//Set High Res and 1M points
+	string_to_char_array(sys_commands.RUN, &buff[0]);
+	SendCommand(buff);
+	string_to_char_array(sys_commands.MDEPTH, &buff[0]);
+	SendCommand(buff);
+	string_to_char_array(sys_commands.HRES, &buff[0]);
+	SendCommand(buff);
 }
 
 
@@ -397,14 +407,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
-				char str[26];
-				
+				char str[27] = { 0 };
+
 				ctime_s(str, sizeof str, &tt);
 				std::string date_str = "";
 
-				for (int i = 0; i < 20;i++) {
+				for (int i = 0; i < 20; i++) {
 					if (str[i + 4] == ' ' || str[i + 4] == ':') {
-						date_str += '-';
+						if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
 					}
 					else {
 						date_str += str[i + 4];
@@ -443,10 +453,19 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//fs::create_directory("vg0");
 
 				vds_source.write_parameters_to_osc(results.vds_source_params);
+				results.vg_source_params.v_offset = results.vg_vector[0];
 				vg_source.write_parameters_to_osc(results.vg_source_params);
 
 				char buff[10] = { 0 };
-
+				/*
+				//Set High Res and 1M points
+				string_to_char_array(sys_commands.RUN, &buff[0]);
+				SendCommand(buff);
+				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
+				SendCommand(buff);
+				string_to_char_array(sys_commands.HRES, &buff[0]);
+				SendCommand(buff);
+				*/
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
 				SendCommand(buff);
@@ -629,14 +648,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
-				char str[26];
+				char str[27] = { 0 };
 
 				ctime_s(str, sizeof str, &tt);
 				std::string date_str = "";
 
 				for (int i = 0; i < 20; i++) {
 					if (str[i + 4] == ' ' || str[i + 4] == ':') {
-						date_str += '-';
+						if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
 					}
 					else {
 						date_str += str[i + 4];
@@ -744,14 +763,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
-				char str[26];
+				char str[27] = { 0 };
 
 				ctime_s(str, sizeof str, &tt);
 				std::string date_str = "";
 
 				for (int i = 0; i < 20; i++) {
-					if (str[i + 4] == ' ' || str[i + 4] == ':') {
-						date_str += '-';
+					if(str[i + 4] == ' ' || str[i + 4] == ':') {
+						if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
 					}
 					else {
 						date_str += str[i + 4];
@@ -775,6 +794,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 								first = false;
 								most_recent = p.path().string();
 								splitted_values_ref = customSplit2(most_recent, '-');
+
 							}
 							else {
 								splitted_values_aux = customSplit2(p.path().string(), '-');
@@ -867,7 +887,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
 
 				char buff[10] = { 0 };
-
+				/*
+				//Set High Res and 1M points
+				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
+				SendCommand(buff);
+				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
+				SendCommand(buff);
+				*/
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
 				SendCommand(buff);
@@ -928,7 +954,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 // Mensagens dos timers
 void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 {
-	std::string trg_status = tester.read_trigger_status();
+	//std::string trg_status = tester.read_trigger_status();
+	//ViConstString read = ":TRIGger:STATus?\n";
+	char trg_status_buff[256] = { 0 };
+	//string_to_char_array(read, SCPI_command);
+	viPrintf(m_vi, ":TRIGger:STATus?\n");
+	viScanf(m_vi, "%t\n", &trg_status_buff);
+	std::string trg_status = trg_status_buff;
+
 	// TODO: Add your message handler code here and/or call default
 	CString temp1, temp2;
 	float soma, media;
@@ -943,7 +976,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
-	case ID_TIMER_FCC:
+	case ID_TIMER_FCC:/*
 		if (trg_status == "RUN\n") {
 			started = true;
 			stopped = false;
@@ -951,20 +984,34 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 		else if (started && (trg_status == "STOP\n")) {
 			started = false;
 			stopped = true;
-		}
+		}*/
 		
-		if (stopped) {
+		if (trg_status == "STOP\n") {
 			if (vg_index < results.vg_vector.size()) {
 				if (burst_count < NUM_MEDIAS) {
 					vds_source.stop(1);
 					vg_source.stop(2);
-					std::string path = result_path + "vg" + std::to_string(vg_index);
+					std::string vg_str = "";
+					if (results.vg_vector[vg_index] == 0) {
+						vg_str = "0";
+					}
+					else {
+						vg_str = std::to_string(results.vg_vector[vg_index]);
+						bool dot_flag = false;
+						for (int i = 0; i < vg_str.size(); i++) {
+							if (vg_str[i] == '.') {
+								vg_str[i] = 'v';
+							}
+						}
+					}
+
+					std::string path = result_path + "vg_" + vg_str;
 					if (!fs::exists(path)) {
 						fs::create_directories(path);
 					}
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					myfile.open(path);
-					myfile << "t,vds,corrente,vg\n";
+					myfile << cabecalho << "\n";
 					Ts = vds_meas.get_sample_period(m_vi);
 					leDadosCanal(vds_meas.get_id());
 					leDadosCanal(current_meas.get_id());
@@ -1010,7 +1057,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				vg_index = 0;
 				vg_source.stop(2);
 				vds_source.stop(1);
+
 				//COLOCAR FUNÇÃO MÉDIA
+
+
+
 				UpdateData(TRUE);
 				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
 				UpdateData(FALSE);
@@ -1037,16 +1088,17 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 		}
 		GetDlgItem(IDC_EDIT_RCVD_MSG)->SetWindowTextW(temp2);*/
 
-		if (trg_status == "RUN\n") {
-			started = true;
-			stopped = false;
-		}
-		else if (started && (trg_status == "STOP\n")) {
-			started = false;
-			stopped = true;
-		}
+		/*
+				if (trg_status == "RUN\n") {
+					started = true;
+					stopped = false;
+				}
+				else if (started && (trg_status == "STOP\n")) {
+					started = false;
+					stopped = true;
+				}*/
 
-		if (stopped) {
+		if (trg_status == "STOP\n") {
 			//if (vg_index < results.vg_vector.size()) {
 				if (burst_count < NUM_MEDIAS) {
 					vds_source.stop(1);
@@ -1057,7 +1109,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					}
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					myfile.open(path);
-					myfile << "t,vds,corrente,vg\n";
+					myfile << cabecalho << "\n";
 					Ts = vg_meas.get_sample_period(m_vi);
 					leDadosCanal(vds_meas.get_id());
 					leDadosCanal(current_meas.get_id());
@@ -1139,7 +1191,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 				path += "/results" + std::to_string(burst_count) + ".csv";
 				myfile.open(path);
-				myfile << "t,vds,corrente,vg\n";
+				myfile << cabecalho << "\n";
 				Ts = vg_meas.get_sample_period(m_vi);
 				leDadosCanal(vds_meas.get_id());
 				//leDadosCanal(current_meas.get_id());
@@ -1221,7 +1273,8 @@ bool CMedicOnChipRigolMSO5074Dlg::iniciarAquisicao()
 		sprintf_s(temp, 200, ":CHANnel%d:DISPlay OFF\n", i);
 		viPrintf(m_vi, temp);
 	}
-	viPrintf(m_vi, ":WAVeform:MODE NORMal\n");
+	viPrintf(m_vi, ":WAVeform:MODE RAW\n");
+	viPrintf(m_vi, ":WAVeform:POINts 1000000\n");
 	viPrintf(m_vi, ":WAVeform:FORMat BYTE\n");
 
 	m_bAquisicaoAtiva = TRUE;
@@ -1245,8 +1298,8 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 // Lê os dados do canal especificado e imprime no gráfico
 void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 {
-	ViByte buf[2048];		//unsigned char
-	ViUInt32 cnt = 2048;
+	ViByte buf[1000000];		//unsigned char
+	ViUInt32 cnt = 1000000;
 	ViUInt32  readcnt;
 
 	char* temp;
@@ -1303,17 +1356,34 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 
 	//std::ofstream myfile;
 	//myfile.open("example.csv");
-
-	sinal = new float[tam];				// Aloca o buffer e preenche
+	//sinal = new float[tam];
+	sinal = new float[tam/500];				// Aloca o buffer e preenche
+	int aux = 0;
+	int sinal_it = 0;
+	float soma = 0;
+	float media = 0;
 	for (int i = 0; i < tam; i++) {
-		sinal[i] = (buf[2 + N + i] - 127) * deltaV;
+		soma += (buf[2 + N + i] - 127) * deltaV;
+		if (aux == 499) {
+			media = soma / 500;
+			if (sinal_it < tam / 500) {
+				sinal[sinal_it] = media;
+			}
+			sinal_it++;
+			aux = 0;
+			soma = 0;
+		}
+				
 		//myfile << Ts * i << "," << sinal[i] << "\n";
+		aux++;
+		//sinal[i] = (buf[2 + N + i] - 127) * deltaV;
 	}
 
 	//myfile.close();
 
 	m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
-	m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam);
+	m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam/500);
+	//m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam);
 	delete[] sinal;
 }
 
@@ -1558,7 +1628,7 @@ void Files_Path_in_Directory(std::filesystem::path caminho)
 				
 					row.clear();
 					getline(teste, line);
-					if (line == "t,vds,corrente") { continue; }
+					if (line == cabecalho) { continue; }
 					else {
 						for (int p = 0; p < line.length(); p++) {
 							if (line[p] == ';' || (p == line.length() - 1)) {
