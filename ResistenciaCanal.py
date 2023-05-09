@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 
 
 #Lê o arquivo que contém o endereço atual de processamento
-adress = pd.read_csv("C:\\Users\\Mediconchip\\Desktop\\diretorio.csv",header=None)
+adress = pd.read_csv("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\MedicOnChip Rigol MSO5074\\diretorio.csv",header=None)
 local= adress.loc[0][0]
 i=0
 for path, directories, files in os.walk(local):

@@ -9,7 +9,7 @@
 
 #define MIN "MIN"
 #define MAX "MAX"
-#define NUM_MEDIAS 2
+#define NUM_MEDIAS 1
 /*
 const struct Waves{
 	std::string RAMP = "RAMP";

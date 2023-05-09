@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 
 
 #Lê o arquivo que contém o endereço atual de processamento
-adress = pd.read_csv("C:\\Users\\Mediconchip\\Desktop\\diretorio.csv",header=None)
+adress = pd.read_csv("diretorio.csv",header=None)
 local= adress.loc[0][0]
 i=0
 for path, directories, files in os.walk(local):
@@ -15,7 +15,7 @@ for path, directories, files in os.walk(local):
         dataFrames=list()
         print(directories)
         for arquivo in files:
-            atual= path+ "\\" + arquivo
+            atual= path+ "\\"+"\\" + arquivo
             burst= pd.read_csv(atual, sep=";")
             #print(burst.head(5))
             burst.columns=["time","VDS","ID","VG"]
@@ -41,14 +41,17 @@ for path, directories, files in os.walk(local):
         ax.set_title("Resistência do Canal via Regressão Linear: "+str(a)+" Ohms")
         plt.savefig(path)
         plt.show()
-        label=["Resistência","Condutância","Coef. Linear"]
+        label=["Resistencia","Condutancia","Coef. Linear"]
         values=[a,1/a,b]
         teste={
             'labels':label,
             'valores':values
         }
-        print(directories)
-        data=pd.DataFrame(teste)           
+        data=pd.DataFrame(teste)
+        print(path)
+        data.to_csv(path_or_buf=path+ "\\resistencia" + ".csv", sep=";")           
            
     
     i=i+1
+
+os.remove("diretorio.csv")

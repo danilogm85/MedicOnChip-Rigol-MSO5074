@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <chrono>
 #include <time.h>
+#include <windows.h>
 //#include <vector>
 #include <sstream>
 #define csv_columns 4
@@ -1059,12 +1060,50 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				vds_source.stop(1);
 
 				//COLOCAR FUNÇÃO MÉDIA
+				std::ofstream myfile;
+				myfile.open("diretorio.csv");
+				myfile << result_path << "\n";
+				myfile.close();
 
+				//const std::string &path = "C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py";
+				//LPCTSTR blabla = path.c_str();
 
+				//system("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py");
+				system("ResistenciaCanal.py");
 
+				string res;
+				result_path += "/vg_0/resistencia.csv";
+				std::ifstream resistance(result_path, ios::in);
+				if (resistance.is_open()) {
+					getline(resistance, res);
+					getline(resistance, res);
+				}
+				resistance.close();
+
+				std::string res_value = "";
+				for (int i = 0; i < res.size();i++) {
+					if (res[i] == '[') {
+						i++;
+						while (res[i] != ']') {
+							res_value += res[i];
+							i++;
+						}
+						break;
+					}
+				}
+				//std::ofstream myfile;
+				myfile.open(result_path, std::ios_base::app);
 				UpdateData(TRUE);
-				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+				if (stof(res_value) >= results.rg_limits["MIN"] && stof(res_value) <= results.rg_limits["MAX"]) {
+					m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					myfile << "PASS" << "\n";
+				}
+				else{
+					m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: REPROVADO");
+					myfile << "FAIL" << "\n";
+				}
 				UpdateData(FALSE);
+				myfile.close();
 
 				m_SNPrompt.m_Serial_Number = "";
 
@@ -1157,6 +1196,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					vg_source.stop(2);
 					vds_source.stop(1);
 					//COLOCAR FUNÇÃO MÉDIA
+					std::ofstream myfile;
+					myfile.open("diretorio.csv");
+					myfile << result_path << "\n";
+					myfile.close();
+
+					system("ResistenciaCanal.py");
+
+
 					UpdateData(TRUE);
 					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
 					UpdateData(FALSE);
