@@ -18,6 +18,8 @@
 #define ID_TIMER_FCC		2
 #define ID_TIMER_FCS		3
 #define ID_TIMER_FCP		4
+#define BUCKET_SIZE_DEFAULT	500
+#define BUCKET_SIZE_FCP		10
 
 // CMedicOnChipRigolMSO5074Dlg dialog
 class CMedicOnChipRigolMSO5074Dlg : public CDialogEx
@@ -77,7 +79,7 @@ public:
 protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
-	void leDadosCanal(unsigned int);
+	void leDadosCanal(unsigned int, unsigned int bucket_size);
 
 public:
 	afx_msg void OnBnClickedButtonFCC();

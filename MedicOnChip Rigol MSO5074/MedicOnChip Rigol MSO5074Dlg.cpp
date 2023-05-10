@@ -36,6 +36,7 @@ bool more_recent(vector<std::string> date, vector<std::string> ref);
 TestHandler tester;
 bool started = false;
 bool stopped = false;
+unsigned int num_bursts;
 //bool force = false;
 FCC_parameters results = tester.get_fcc_parameters();
 FCS_parameters results_fcs = tester.get_fcs_parameters();
@@ -105,6 +106,7 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	SendCommand(buff);
 	string_to_char_array(sys_commands.HRES, &buff[0]);
 	SendCommand(buff);
+
 }
 
 
@@ -405,6 +407,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("Encerrar"));
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
 
+				num_bursts = results.bursts;
+
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
@@ -646,6 +650,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
 				*/
 
+				num_bursts = results_fcs.bursts;
+
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
@@ -760,6 +766,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("Encerrar"));
+
+				num_bursts = results_fcp.bursts;
 
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
@@ -989,7 +997,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 		
 		if (trg_status == "STOP\n") {
 			if (vg_index < results.vg_vector.size()) {
-				if (burst_count < NUM_MEDIAS) {
+				if (burst_count < num_bursts) {
 					vds_source.stop(1);
 					vg_source.stop(2);
 					std::string vg_str = "";
@@ -1014,9 +1022,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					myfile.open(path);
 					myfile << cabecalho << "\n";
 					Ts = vds_meas.get_sample_period(m_vi);
-					leDadosCanal(vds_meas.get_id());
-					leDadosCanal(current_meas.get_id());
-					leDadosCanal(vg_meas.get_id());
+					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT);
+					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT);
+					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT);
 					tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
 					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
 					if (tam_vds >= tam_current) {
@@ -1030,7 +1038,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					}
 					myfile.close();
 					burst_count++;
-					if (burst_count != NUM_MEDIAS)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
+					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 					{
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
@@ -1139,7 +1147,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 		if (trg_status == "STOP\n") {
 			//if (vg_index < results.vg_vector.size()) {
-				if (burst_count < NUM_MEDIAS) {
+				if (burst_count < num_bursts) {
 					vds_source.stop(1);
 					vg_source.stop(2);
 					std::string path = result_path;
@@ -1150,9 +1158,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					myfile.open(path);
 					myfile << cabecalho << "\n";
 					Ts = vg_meas.get_sample_period(m_vi);
-					leDadosCanal(vds_meas.get_id());
-					leDadosCanal(current_meas.get_id());
-					leDadosCanal(vg_meas.get_id());
+					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT);
+					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT);
+					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT);
 					tam_vg = m_pwndGraficoCanal[vg_meas.get_id() - 1].getTamVetorDeDados();
 					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
 					if (tam_vg >= tam_current) {
@@ -1166,7 +1174,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					}
 					myfile.close();
 					burst_count++;
-					if (burst_count != NUM_MEDIAS)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
+					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 					{
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
@@ -1196,13 +1204,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					vg_source.stop(2);
 					vds_source.stop(1);
 					//COLOCAR FUNÇÃO MÉDIA
+
+
 					std::ofstream myfile;
-					myfile.open("diretorio.csv");
+					myfile.open("FCS.csv");
 					myfile << result_path << "\n";
 					myfile.close();
 
-					system("ResistenciaCanal.py");
-
+					system("Final_FCS_teste.py");
 
 					UpdateData(TRUE);
 					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
@@ -1229,7 +1238,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 		if (trg_status == "STOP\n") {
 			
-			if (burst_count < NUM_MEDIAS) {
+			if (burst_count < num_bursts) {
 				//vds_source.stop(1);
 				vg_source.stop(2);
 				std::string path = result_path;
@@ -1240,9 +1249,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				myfile.open(path);
 				myfile << cabecalho << "\n";
 				Ts = vg_meas.get_sample_period(m_vi);
-				leDadosCanal(vds_meas.get_id());
+				leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_FCP);
 				//leDadosCanal(current_meas.get_id());
-				leDadosCanal(vg_meas.get_id());
+				leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_FCP);
 				tam_vg = m_pwndGraficoCanal[vg_meas.get_id() - 1].getTamVetorDeDados();
 				tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
 				if (tam_vg >= tam_vds) {
@@ -1256,7 +1265,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 				myfile.close();
 				burst_count++;
-				if (burst_count != NUM_MEDIAS)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
+				if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 				{
 					vg_source.start(2);
 					string_to_char_array(sys_commands.SINGLE, &buff[0]);
@@ -1343,7 +1352,7 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 }
 
 // Lê os dados do canal especificado e imprime no gráfico
-void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
+void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int bucket_size)
 {
 	ViByte buf[1000000];		//unsigned char
 	ViUInt32 cnt = 1000000;
@@ -1404,16 +1413,17 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 	//std::ofstream myfile;
 	//myfile.open("example.csv");
 	//sinal = new float[tam];
-	sinal = new float[tam/500];				// Aloca o buffer e preenche
+	/*
+	sinal = new float[tam/50];				// Aloca o buffer e preenche
 	int aux = 0;
 	int sinal_it = 0;
 	float soma = 0;
 	float media = 0;
 	for (int i = 0; i < tam; i++) {
 		soma += (buf[2 + N + i] - 127) * deltaV;
-		if (aux == 499) {
-			media = soma / 500;
-			if (sinal_it < tam / 500) {
+		if (aux == 49) {
+			media = soma / 50;
+			if (sinal_it < tam / 50) {
 				sinal[sinal_it] = media;
 			}
 			sinal_it++;
@@ -1425,11 +1435,32 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal)
 		aux++;
 		//sinal[i] = (buf[2 + N + i] - 127) * deltaV;
 	}
-
+	*/
+		sinal = new float[tam/bucket_size];				// Aloca o buffer e preenche
+	int aux = 0;
+	int sinal_it = 0;
+	float soma = 0;
+	float media = 0;
+	for (int i = 0; i < tam; i++) {
+		soma += (buf[2 + N + i] - 127) * deltaV;
+		if (aux == bucket_size - 1) {
+			media = soma / bucket_size;
+			if (sinal_it < tam / bucket_size) {
+				sinal[sinal_it] = media;
+			}
+			sinal_it++;
+			aux = 0;
+			soma = 0;
+		}
+				
+		//myfile << Ts * i << "," << sinal[i] << "\n";
+		aux++;
+		//sinal[i] = (buf[2 + N + i] - 127) * deltaV;
+	}
 	//myfile.close();
 
 	m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
-	m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam/500);
+	m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam/bucket_size);
 	//m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam);
 	delete[] sinal;
 }

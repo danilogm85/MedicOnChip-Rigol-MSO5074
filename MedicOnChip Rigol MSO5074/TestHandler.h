@@ -9,7 +9,7 @@
 
 #define MIN "MIN"
 #define MAX "MAX"
-#define NUM_MEDIAS 1
+//#define NUM_MEDIAS 1
 /*
 const struct Waves{
 	std::string RAMP = "RAMP";
@@ -66,6 +66,7 @@ struct FCC_parameters{
 	float v_tia;
 	std::map<std::string,float> rg_limits;
 	std::vector<float> vg_vector;
+	unsigned int bursts = 1;
 };
 
 struct FCS_parameters {
@@ -80,6 +81,7 @@ struct FCS_parameters {
 	//std::map<std::string, float> rg_limits;
 	//std::vector<float> vg_vector;
 	float flat_region_width;
+	unsigned int bursts = 1;
 };
 
 struct FCP_parameters {
@@ -89,6 +91,7 @@ struct FCP_parameters {
 	//MeasurementChannel_parameters current_meas_params;
 	MeasurementChannel_parameters vg_meas_params;
 	float t_scale;
+	unsigned int bursts = 1;
 	//float g_tia;
 	//float v_tia;
 	//std::map<std::string, float> rg_limits;
