@@ -178,7 +178,7 @@ FCS_parameters TestHandler::get_fcs_parameters() {
     //VDS measurement parameters
     parameters.vds_meas_params.volts_div = parameters.vds_source_params.v_offset / 2;
 
-    parameters.bursts = stoul(ini.get("FCC").get("BURSTS"));
+    parameters.bursts = stoul(ini.get("FCS").get("BURSTS"));
 
     return parameters;
 }
@@ -235,7 +235,7 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     //VDS measurement parameters
     parameters.vds_meas_params.volts_div = stof(ini.get("FCP").get("MAX_VDS_EXPECT")) / 4;
 
-    parameters.bursts = stoul(ini.get("FCC").get("BURSTS"));
+    parameters.bursts = stoul(ini.get("FCP").get("BURSTS"));
 
     return parameters;
 }
