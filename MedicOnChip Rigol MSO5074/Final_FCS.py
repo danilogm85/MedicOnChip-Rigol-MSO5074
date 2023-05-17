@@ -110,7 +110,20 @@ ax.axvline(x = vg_min, color = 'green', linestyle=':')
 ax.set_xlabel("Tensão Vg")
 ax.set_ylabel("Resistência")
 ax.set_title("Resistência vs Vg")
-fig_path = local + "ResxVg"
+fig_path = local + "\\ResxVg"
+print(fig_path)
 plt.savefig(local)
 plt.legend()
 plt.show()
+'''
+teste={
+    'Sub_Vg':Sub_Final["VG"],
+    'Sub_Res':Sub_Final["RES"],
+    'Des_Vg':Des_Final["VG"],
+    'Des_Res':Des_Final["RES"]
+}
+data=pd.DataFrame(teste)
+print(path)
+log = "Salvando resultados em: " + path + "\\resistencia" + ".csv"
+print(log)
+data.to_csv(path_or_buf=local+ "\\data_fcs" + ".csv", sep=";")'''

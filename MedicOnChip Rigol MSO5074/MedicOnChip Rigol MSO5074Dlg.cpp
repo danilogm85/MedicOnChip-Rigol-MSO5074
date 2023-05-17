@@ -13,8 +13,10 @@
 #include <fstream>
 #include <filesystem>
 #include <chrono>
+#include <thread>
 #include <time.h>
 #include <windows.h>
+#include <algorithm>
 //#include <vector>
 #include <sstream>
 #define csv_columns 4
@@ -54,6 +56,7 @@ int vg_index = 0;
 CString database_path = CString("database/");
 std::string result_path = "";
 vector <std::string> log_lines;
+bool flag_reset_waveform = true;
 
 // CAboutDlg dialog used for App About
 
@@ -151,6 +154,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON8, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8)
 	ON_BN_CLICKED(IDC_BUTTON9, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9)
 	ON_BN_CLICKED(IDC_BUTTON_FCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp)
+	//ON_BN_CLICKED(IDC_BUTTON10, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton10)
 END_MESSAGE_MAP()
 
 
@@ -410,6 +414,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("Encerrar"));
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
 
+				//char bufff[24] = { 0 };
+
 				num_bursts = results.bursts;
 
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
@@ -460,6 +466,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				vg_meas.write_parameters_to_osc(results.vg_meas_params);
 				//Set trigger
 				trigger_parameters.source = "CHAN1";
+				trigger_parameters.level = 0.01;
 				tester.send_trigger_parameters(trigger_parameters);
 				//Set Source channels
 				vg_index = 0;
@@ -910,6 +917,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				vg_meas.write_parameters_to_osc(results_fcp.vg_meas_params);
 				//Set trigger
 				trigger_parameters.source = "CHAN3";
+				trigger_parameters.level = 0.01;
 				tester.send_trigger_parameters(trigger_parameters);
 
 				//vds_source.write_parameters_to_osc(results_fcs.vds_source_params);
@@ -1001,6 +1009,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	int tam_fcc = 0;
 	std::ofstream myfile;
 	char buff[10] = { 0 };
+	char buff2[23] = { 0 };
+	//float measurements[][];
 	
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
@@ -1050,27 +1060,34 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						UpdateData(FALSE);*/
 						fs::create_directories(path);
 					}
+					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".bin";
 					path += "/results" + std::to_string(burst_count) + ".csv";
-					myfile.open(path);
-					myfile << cabecalho << "\n";
-					Ts = vds_meas.get_sample_period(m_vi);
+					//myfile.open(path);
+					//myfile << cabecalho << "\n";
+					//Ts = vds_meas.get_sample_period(m_vi);
 					/*
 					build_log_message("Lendo dados do canal");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);
 					*/
-					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT);
-					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT);
-					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT);
+					/*
+					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path, mean_data_path);
+					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
+					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
+
+					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
+					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
+					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path); 
+
 					tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
 					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
-					/*
+					
 					build_log_message("Escrevendo curvas nos arquivos");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);
-					*/
+					
 					if (tam_vds >= tam_current) {
 						tam_fcc = tam_vds;
 					}
@@ -1081,6 +1098,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
 					}
 					myfile.close();
+					*/
+					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
+					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
+
 					burst_count++;
 					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 					{/*
@@ -1232,9 +1253,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);*/
 
 					Ts = vg_meas.get_sample_period(m_vi);
-					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT);
-					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT);
-					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT);
+					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
+					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
+					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
 					tam_vg = m_pwndGraficoCanal[vg_meas.get_id() - 1].getTamVetorDeDados();
 					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
 					/*
@@ -1376,9 +1397,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				UpdateData(FALSE);*/
 
 				Ts = vg_meas.get_sample_period(m_vi);
-				leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_FCP);
+				leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_FCP, "");
 				//leDadosCanal(current_meas.get_id());
-				leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_FCP);
+				leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_FCP, "");
 				tam_vg = m_pwndGraficoCanal[vg_meas.get_id() - 1].getTamVetorDeDados();
 				tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
 				/*
@@ -1438,7 +1459,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				myfile << result_path << "\n";
 				myfile.close();
 
-				system("python.exe FCP.py");
+				system("python.exe Final_FCP.py");
 
 				//COLOCAR FUNÇÃO MÉDIA
 				UpdateData(TRUE);
@@ -1452,6 +1473,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);*/
 
+				reset_square_wave();
 				OnBnClickedButtonFcp();
 			}
 		}
@@ -1462,6 +1484,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			UpdateData(FALSE);*/
 		}
 		break;
+	/*case ID_TIMER_RESET:
+		//string_to_char_array(":SOURce1:FUNCtion RAMP\n", &buff2[0]);
+		//SendCommand(buff2);
+		string_to_char_array(":SOURce2:FUNCtion RAMP\n", &buff2[0]);
+		SendCommand(buff2);
+		flag_reset_waveform = false;
+		OnBnClickedButton10();
+		break;*/
 	default:
 		break;
 	}
@@ -1523,8 +1553,136 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 	return true;
 }
 
+void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path,std::string mean_path) {
+	ViByte buf[1000000];		//unsigned char
+	ViUInt32 cnt = 1000000;
+	ViUInt32  readcnt;
+	char* temp;
+	float Ts;
+	float deltaV;
+	int N;
+	int tam;
+	float* sinal;
+	int aux = 0;
+	int sinal_it = 0;
+	float soma = 0;
+	float media = 0;
+	bool flag_time;
+
+	std::vector<std::vector<float>> raw_signals(1000000, std::vector<float>(4));
+	std::vector<std::vector<float>> mean_signals(1000000/bucket_size, std::vector<float>(4));
+	for (auto& linha : raw_signals) {
+		linha.assign(4, 0);
+	}
+	for (auto& linha : mean_signals) {
+		linha.assign(4, 0);
+	}
+
+	//Seleciona o primeiro canal
+	temp = new char[256];
+	sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel%d\n", 1);
+	viPrintf(m_vi, temp);
+	delete[] temp;
+
+	//Determina a resolução horizontal
+	viPrintf(m_vi, ":WAVeform:XINCrement?\n");
+	viRead(m_vi, buf, cnt, &readcnt);
+	temp = new char[readcnt];
+	for (int i = 0; i < readcnt; i++)
+		temp[i] = buf[i];
+	Ts = atof(temp);		//Período de amostragem
+	delete[] temp;
+
+	//Itera sobre cada canal
+	flag_time = false;
+	for (int canal = 1; canal < 4; canal++) {
+		auto iterador = std::find(channels.begin(), channels.end(), canal);
+		//Só mede se o canal estiver selecionado no vetor channels
+		if (iterador != channels.end()) {
+			//Seleciona o canal
+			temp = new char[256];
+			sprintf_s(temp, 256, ":WAVeform:SOURce CHANnel%d\n", canal);
+			viPrintf(m_vi, temp);
+			delete[] temp;
+
+			//Determina a resolução vertical
+			viPrintf(m_vi, ":WAVeform:YINCrement?\n");
+			viRead(m_vi, buf, cnt, &readcnt);
+			temp = new char[readcnt];
+			for (int i = 0; i < readcnt; i++)
+				temp[i] = buf[i];
+			deltaV = atof(temp);	//Resolução vertical
+			delete[] temp;
+
+			//Lê os dados
+			viPrintf(m_vi, ":WAVeform:DATA?\n");
+			viRead(m_vi, buf, cnt, &readcnt);
+			temp = new char[2];					// Obtém o parâmetro N do cabeçalho
+			sprintf_s(temp, 2, "%c", buf[1]);
+			N = atoi(temp);
+			delete[] temp;
+
+			temp = new char[N + 1];				// Obtém o tamanho do buffer de dados
+			for (int i = 0; i < N; i++)
+				temp[i] = buf[2 + i];
+			temp[N] = '\n';
+			tam = atoi(temp);
+			delete[] temp;
+
+			sinal = new float[tam / bucket_size];
+
+			for (int i = 0; i < tam; i++) {
+
+				raw_signals[i][canal] = (buf[2 + N + i] - 127) * deltaV;
+				if (!flag_time) {
+					raw_signals[i][0] = Ts*i;
+				}
+
+				soma += (buf[2 + N + i] - 127) * deltaV;
+				if (aux == bucket_size - 1) {
+					media = soma / bucket_size;
+					if (sinal_it < tam / bucket_size) {
+						mean_signals[sinal_it][canal] = media;
+						sinal[sinal_it] = media;
+						if (!flag_time) {
+							mean_signals[i][0] = Ts * i;
+						}
+					}
+					sinal_it++;
+					aux = 0;
+					soma = 0;
+				}
+				aux++;
+			}
+
+			m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
+			m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam / bucket_size);
+			delete[] sinal;
+			flag_time = true;
+		}
+	}
+	std::ofstream arquivo(raw_path, std::ios::binary);
+	for (const auto& linha : raw_signals) {
+		arquivo.write(reinterpret_cast<const char*>(linha.data()), linha.size() * sizeof(int));
+	}
+	arquivo.close();
+	
+	std::ofstream arquivo_mean(mean_path);
+	arquivo << cabecalho << "\n";
+	for (const auto& linha : mean_signals) {
+		for (size_t i = 0; i < linha.size(); i++) {
+			arquivo << linha[i];
+			if (i < linha.size() - 1) {
+				arquivo << ";";
+			}
+		}
+		arquivo << "\n";
+	}
+	arquivo.close();
+}
+
 // Lê os dados do canal especificado e imprime no gráfico
-void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int bucket_size)
+void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int bucket_size, std::string bin_file_path)
 {
 	ViByte buf[1000000];		//unsigned char
 	ViUInt32 cnt = 1000000;
@@ -2091,3 +2249,91 @@ void build_log_message(std::string msg) {
 	return;
 	tester.log_string = "";
 }*/
+
+void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
+{
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
+		ViSession defaultRM, vi;
+		char buf[256] = { 0 };
+		CString s, command;
+		char stringTemp[256];
+
+		ViChar buffer[VI_FIND_BUFLEN];
+		ViRsrc matches = buffer;
+		ViUInt32 nmatches;
+		ViFindList list;
+
+		viOpenDefaultRM(&defaultRM);
+		//Acquire the USB resource of VISA
+		viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+		viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+
+		command = ":SOURce1:FUNCtion SQU";
+		command += "\n";
+
+		for (int i = 0; i < command.GetLength(); i++)
+			stringTemp[i] = (char)command.GetAt(i);
+
+		viPrintf(vi, stringTemp);
+
+		sleep_for(milliseconds(500));
+
+		viClose(vi);
+		viClose(defaultRM);
+
+		viOpenDefaultRM(&defaultRM);
+		//Acquire the USB resource of VISA
+		viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+		viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+
+		command = ":SOURce1:FUNCtion RAMP";
+		command += "\n";
+
+		for (int i = 0; i < command.GetLength(); i++)
+			stringTemp[i] = (char)command.GetAt(i);
+
+		viPrintf(vi, stringTemp);
+
+		viClose(vi);
+		viClose(defaultRM);
+
+		sleep_for(milliseconds(500));
+
+		viOpenDefaultRM(&defaultRM);
+		//Acquire the USB resource of VISA
+		viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+		viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+
+		command = ":SOURce2:FUNCtion SQU";
+		command += "\n";
+
+		for (int i = 0; i < command.GetLength(); i++)
+			stringTemp[i] = (char)command.GetAt(i);
+
+		viPrintf(vi, stringTemp);
+
+		sleep_for(milliseconds(500));
+
+		viClose(vi);
+		viClose(defaultRM);
+
+		viOpenDefaultRM(&defaultRM);
+		//Acquire the USB resource of VISA
+		viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+		viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+
+		command = ":SOURce2:FUNCtion RAMP";
+		command += "\n";
+
+		for (int i = 0; i < command.GetLength(); i++)
+			stringTemp[i] = (char)command.GetAt(i);
+
+		viPrintf(vi, stringTemp);
+
+		viClose(vi);
+		viClose(defaultRM);
+
+		return;
+}

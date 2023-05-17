@@ -18,6 +18,7 @@
 #define ID_TIMER_FCC		2
 #define ID_TIMER_FCS		3
 #define ID_TIMER_FCP		4
+#define ID_TIMER_RESET		5
 #define BUCKET_SIZE_DEFAULT	500
 #define BUCKET_SIZE_FCP		10
 
@@ -79,7 +80,8 @@ public:
 protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
-	void leDadosCanal(unsigned int, unsigned int bucket_size);
+	void leDadosCanal(unsigned int, unsigned int bucket_size, std::string bin_file_path);
+	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path);
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
@@ -97,6 +99,7 @@ public:
 	CString m_results_display;
 	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButtonFcp();
+	void CMedicOnChipRigolMSO5074Dlg::reset_square_wave();
 };
 
 void SendCommand(char command[256]);

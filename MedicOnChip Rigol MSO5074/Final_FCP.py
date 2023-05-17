@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-adress = pd.read_csv("C:\\Users\\Mediconchip\\Desktop\\FCP.csv",header=None)
+adress = pd.read_csv("FCP.csv",header=None)
 local= adress.loc[0][0]
 DescidaResult=pd.DataFrame(0,index=np.arange(0, 10100), columns=np.arange(2))
 DescidaResult.columns=["index","VDS"]
@@ -47,5 +47,15 @@ ax.set_title("FCP")
 plt.legend()
 plt.show()
 
+teste={
+    'subida':SubidaResult["VDS"],
+    'descida':DescidaResult["VDS"]
+}
+data=pd.DataFrame(teste)
+print(path)
+log = "Salvando resultados em: " + path + "\\resistencia" + ".csv"
+print(log)
+data.to_csv(path_or_buf=local+ "\\vds_fcp" + ".csv", sep=";")
+
 #remover arquivo com os endereços dos dados FCP
-os.remove("C:\\Users\\Mediconchip\\Desktop\\FCP.csv")
+os.remove("FCP.csv")

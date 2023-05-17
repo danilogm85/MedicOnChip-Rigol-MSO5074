@@ -70,6 +70,7 @@
 #define IDC_TEST_RESULTS                1038
 #define IDC_txt                         1040
 #define IDC_BUTTON_FCP                  1041
+#define IDC_BUTTON10                    1042
 
 // Next default values for new objects
 // 
@@ -77,7 +78,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1042
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
