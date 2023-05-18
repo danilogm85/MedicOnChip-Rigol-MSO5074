@@ -13,28 +13,29 @@ mean=0
 
 for path, directories,files  in os.walk(local):
     for arquivo in files:
-        atual= path+ "\\"+"\\" + arquivo
-        print(atual)
-        burst= pd.read_csv(atual, sep=";")
-        burst.columns=["time","VDS","ID","VG"]
-        burst=burst.astype("Float64")
-        samples=len(burst.index)
-        burst.columns=["time","VDS","ID","VG"]
-        #print(burst.head(5))
-        deltaVg=burst["VG"].diff()
-        max=deltaVg[0:int(samples/2)-1].idxmax()
-        min=deltaVg[0:int(samples/2)-1].idxmin()
-        print(max)
-        print(min)
-        if(min<100):
-            SubidaResult=burst["VDS"][min:min+10100].reset_index()+SubidaResult
-        else:
-            SubidaResult=burst["VDS"][min-100:min+10000].reset_index()+SubidaResult
-        if(max<100):
-            DescidaResult=burst["VDS"][max:max+10100].reset_index()+DescidaResult
-        else:
-            DescidaResult=burst["VDS"][max-100:max+1000].reset_index()+DescidaResult
-        mean=mean+1
+        if ".csv" in arquivo:
+            atual= path+ "\\"+"\\" + arquivo
+            print(atual)
+            burst= pd.read_csv(atual, sep=";")
+            burst.columns=["time","VDS","ID","VG"]
+            burst=burst.astype("Float64")
+            samples=len(burst.index)
+            burst.columns=["time","VDS","ID","VG"]
+            #print(burst.head(5))
+            deltaVg=burst["VG"].diff()
+            max=deltaVg[0:int(samples/2)-1].idxmax()
+            min=deltaVg[0:int(samples/2)-1].idxmin()
+            print(max)
+            print(min)
+            if(min<100):
+                SubidaResult=burst["VDS"][min:min+10100].reset_index()+SubidaResult
+            else:
+                SubidaResult=burst["VDS"][min-100:min+10000].reset_index()+SubidaResult
+            if(max<100):
+                DescidaResult=burst["VDS"][max:max+10100].reset_index()+DescidaResult
+            else:
+                DescidaResult=burst["VDS"][max-100:max+1000].reset_index()+DescidaResult
+            mean=mean+1
 
 SubidaResult=SubidaResult/mean
 DescidaResult=DescidaResult/mean

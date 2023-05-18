@@ -13,7 +13,7 @@ dataFrame=list()
 for path, directories, files in os.walk(local):
 
     for arquivo in files:
-        if "vg_values" not in arquivo:
+        if ".csv" in arquivo:
             atual= path+ "\\"+"\\" + arquivo
             burst= pd.read_csv(atual, sep=";")
             burst.columns=["time","VDS","ID","VG"]

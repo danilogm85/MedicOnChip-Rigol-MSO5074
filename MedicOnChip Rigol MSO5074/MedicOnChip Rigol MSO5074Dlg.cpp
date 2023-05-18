@@ -1060,8 +1060,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						UpdateData(FALSE);*/
 						fs::create_directories(path);
 					}
-					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".bin";
-					path += "/results" + std::to_string(burst_count) + ".csv";
+
 					//myfile.open(path);
 					//myfile << cabecalho << "\n";
 					//Ts = vds_meas.get_sample_period(m_vi);
@@ -1099,6 +1098,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					}
 					myfile.close();
 					*/
+					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
+					path += "/results" + std::to_string(burst_count) + ".csv";
 					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
 					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
 
@@ -1242,7 +1243,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);*/
 						fs::create_directories(path);
-					}
+					}/*
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					myfile.open(path);
 					myfile << cabecalho << "\n";
@@ -1250,7 +1251,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					build_log_message("Lendo dados do canal");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
-					UpdateData(FALSE);*/
+					UpdateData(FALSE);
 
 					Ts = vg_meas.get_sample_period(m_vi);
 					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
@@ -1263,7 +1264,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);
-					*/
+					
 					if (tam_vg >= tam_current) {
 						tam_fcc = tam_vg;
 					}
@@ -1274,6 +1275,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
 					}
 					myfile.close();
+					*/
+					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
+					path += "/results" + std::to_string(burst_count) + ".csv";
+					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
+					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
+
 					burst_count++;
 					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 					{/*
@@ -1386,7 +1393,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);*/
 					fs::create_directories(path);
-				}
+				}/*
 				path += "/results" + std::to_string(burst_count) + ".csv";
 				myfile.open(path);
 				myfile << cabecalho << "\n";
@@ -1394,7 +1401,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				build_log_message("Lendo dados do canal");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
-				UpdateData(FALSE);*/
+				UpdateData(FALSE);
 
 				Ts = vg_meas.get_sample_period(m_vi);
 				leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_FCP, "");
@@ -1406,7 +1413,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				build_log_message("Escrevendo curvas nos arquivos");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
-				UpdateData(FALSE);*/
+				UpdateData(FALSE);
 
 				if (tam_vg >= tam_vds) {
 					tam_fcc = tam_vg;
@@ -1417,7 +1424,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				for (int i = 0; i < tam_fcc; i++) {
 					myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << "0" << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
 				}
-				myfile.close();
+				myfile.close();*/
+
+				std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
+				path += "/results" + std::to_string(burst_count) + ".csv";
+				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
+				Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
+
 				burst_count++;
 				if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 				{/*
@@ -1554,7 +1567,8 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 }
 
 void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path,std::string mean_path) {
-	ViByte buf[1000000];		//unsigned char
+	ViByte* buf;		//unsigned char
+	buf = new ViByte[1000000];
 	ViUInt32 cnt = 1000000;
 	ViUInt32  readcnt;
 	char* temp;
@@ -1571,12 +1585,20 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 
 	std::vector<std::vector<float>> raw_signals(1000000, std::vector<float>(4));
 	std::vector<std::vector<float>> mean_signals(1000000/bucket_size, std::vector<float>(4));
+	for (int i = 0; i < 1000000; i++) {
+		for (int j = 4; j < 4; j++) {
+			raw_signals[i][j] = 0;
+			if (i< 1000000 / bucket_size) {
+				mean_signals[i][j] = 0;
+			}
+		}
+	}/*
 	for (auto& linha : raw_signals) {
 		linha.assign(4, 0);
 	}
 	for (auto& linha : mean_signals) {
 		linha.assign(4, 0);
-	}
+	}*/
 
 	//Seleciona o primeiro canal
 	temp = new char[256];
@@ -1630,7 +1652,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 			delete[] temp;
 
 			sinal = new float[tam / bucket_size];
-
+			sinal_it = 0;
 			for (int i = 0; i < tam; i++) {
 
 				raw_signals[i][canal] = (buf[2 + N + i] - 127) * deltaV;
@@ -1645,7 +1667,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 						mean_signals[sinal_it][canal] = media;
 						sinal[sinal_it] = media;
 						if (!flag_time) {
-							mean_signals[i][0] = Ts * i;
+							mean_signals[sinal_it][0] = Ts * i;
 						}
 					}
 					sinal_it++;
@@ -1661,6 +1683,8 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 			flag_time = true;
 		}
 	}
+	delete[] buf;
+
 	std::ofstream arquivo(raw_path, std::ios::binary);
 	for (const auto& linha : raw_signals) {
 		arquivo.write(reinterpret_cast<const char*>(linha.data()), linha.size() * sizeof(int));
@@ -1668,17 +1692,17 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	arquivo.close();
 	
 	std::ofstream arquivo_mean(mean_path);
-	arquivo << cabecalho << "\n";
+	arquivo_mean << cabecalho << "\n";
 	for (const auto& linha : mean_signals) {
 		for (size_t i = 0; i < linha.size(); i++) {
-			arquivo << linha[i];
+			arquivo_mean << linha[i];
 			if (i < linha.size() - 1) {
-				arquivo << ";";
+				arquivo_mean << ";";
 			}
 		}
-		arquivo << "\n";
+		arquivo_mean << "\n";
 	}
-	arquivo.close();
+	arquivo_mean.close();
 }
 
 // Lê os dados do canal especificado e imprime no gráfico

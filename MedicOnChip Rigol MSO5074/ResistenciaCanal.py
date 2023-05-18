@@ -17,16 +17,17 @@ for path, directories, files in os.walk(local):
         dataFrames=list()
         print(directories)
         for arquivo in files:
-            atual= path+ "\\"+"\\" + arquivo
-            log = "Pegando curva no arquivo: " + atual
-            print(log)
-            burst= pd.read_csv(atual, sep=";")
-            #print(burst.head(5))
-            burst.columns=["time","VDS","ID","VG"]
-            burst=burst.astype("Float64")
-            burst["ID"]=burst["ID"]/5000
-            dataFrames.append(burst)
-            print("Curvas carregadas")
+            if ".csv" in arquivo:
+                atual= path+ "\\"+"\\" + arquivo
+                log = "Pegando curva no arquivo: " + atual
+                print(log)
+                burst= pd.read_csv(atual, sep=";")
+                #print(burst.head(5))
+                burst.columns=["time","VDS","ID","VG"]
+                burst=burst.astype("Float64")
+                burst["ID"]=burst["ID"]/5000
+                dataFrames.append(burst)
+                print("Curvas carregadas")
 
         result = pd.concat(dataFrames)
         print("Fazendo ajuste linear dos dados")
