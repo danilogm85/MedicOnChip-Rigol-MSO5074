@@ -100,6 +100,7 @@ public:
 	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButtonFcp();
 	void CMedicOnChipRigolMSO5074Dlg::reset_square_wave();
+	afx_msg void OnBnClickedButtonFcsAlt();
 };
 
 void SendCommand(char command[256]);

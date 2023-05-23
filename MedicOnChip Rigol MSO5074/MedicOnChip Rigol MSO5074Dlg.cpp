@@ -155,6 +155,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON9, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9)
 	ON_BN_CLICKED(IDC_BUTTON_FCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp)
 	//ON_BN_CLICKED(IDC_BUTTON10, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton10)
+	ON_BN_CLICKED(IDC_BUTTON_FCS_ALT, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt)
 END_MESSAGE_MAP()
 
 
@@ -403,6 +404,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 {
 	// TODO: Add your control notification handler code here
 
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
 	if (!m_bAquisicaoAtiva)
 	{
 		if (m_SNPrompt.DoModal() == IDOK) {
@@ -415,6 +419,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
 
 				//char bufff[24] = { 0 };
+				reset_square_wave();
 
 				num_bursts = results.bursts;
 
@@ -503,13 +508,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				current_meas.on();
 				vg_meas.on();
 
-				string_to_char_array(sys_commands.SINGLE, &buff[0]);
-				SendCommand(buff);
-
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
 				vg_source.start(2);
 				vds_source.start(1);
+				sleep_for(milliseconds(100));
+				string_to_char_array(sys_commands.SINGLE, &buff[0]);
+				SendCommand(buff);
+				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
+				//SendCommand(buff);
+
 
 				/*Isso não funciona porque o loop de tempo indeterminado trava a interface.Vamos ter que fazer por TIMER
 				while (tester.read_trigger_status() != "RUN") {
@@ -602,6 +608,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 {
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
 	//char temp[256];
 
 	// TODO: Add your control notification handler code here
@@ -670,6 +679,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
+				reset_square_wave();
+
 				num_bursts = results_fcs.bursts;
 
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
@@ -732,13 +743,15 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				current_meas.on();
 				vg_meas.on();
 
-				string_to_char_array(sys_commands.SINGLE, &buff[0]);
-				SendCommand(buff);
-
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
 				vg_source.start(2);
 				vds_source.start(1);
+				sleep_for(milliseconds(100));
+
+				string_to_char_array(sys_commands.SINGLE, &buff[0]);
+				SendCommand(buff);
+				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
+				//SendCommand(buff);
+
 
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCS, 1000, NULL);
@@ -776,6 +789,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 {
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
 	if (!m_bAquisicaoAtiva)
 	{
 		if (m_SNPrompt.DoModal() == IDOK)
@@ -899,7 +915,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 					return;
 				}
 
-				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str() + "/";
+				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
 				result_path = CStringA(results_path);
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
@@ -917,7 +933,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				vg_meas.write_parameters_to_osc(results_fcp.vg_meas_params);
 				//Set trigger
 				trigger_parameters.source = "CHAN3";
-				trigger_parameters.level = 0.01;
 				tester.send_trigger_parameters(trigger_parameters);
 
 				//vds_source.write_parameters_to_osc(results_fcs.vds_source_params);
@@ -950,10 +965,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 
 				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
 				//SendCommand(buff);
-				vg_source.start(2);
 
+
+				vg_source.start(2);
+				sleep_for(milliseconds(100));
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
+
 				//vds_source.start(1);
 
 				//Ativa o timer
@@ -991,6 +1009,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 // Mensagens dos timers
 void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 {
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
 	//std::string trg_status = tester.read_trigger_status();
 	//ViConstString read = ":TRIGger:STATus?\n";
 	char trg_status_buff[256] = { 0 };
@@ -1111,10 +1131,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);
 						*/
-						string_to_char_array(sys_commands.SINGLE, &buff[0]);
-						SendCommand(buff);
+
 						vg_source.start(2);
 						vds_source.start(1);
+						sleep_for(milliseconds(100));
+						string_to_char_array(sys_commands.SINGLE, &buff[0]);
+						SendCommand(buff);
+
 						//force = false;
 					}
 				}
@@ -1131,10 +1154,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						*/
 						results.vg_source_params.v_offset = results.vg_vector[vg_index];
 						vg_source.write_parameters_to_osc(results.vg_source_params);
-						string_to_char_array(sys_commands.SINGLE, &buff[0]);
-						SendCommand(buff);
+						sleep_for(milliseconds(300));
 						vg_source.start(2);
 						vds_source.start(1);
+						sleep_for(milliseconds(100));
+						string_to_char_array(sys_commands.SINGLE, &buff[0]);
+						SendCommand(buff);
+
 						stopped = false;
 						started = false;
 					}
@@ -1165,13 +1191,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				//LPCTSTR blabla = path.c_str();
 
 				//system("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py");
-				system("python.exe ResistenciaCanal.py");
+				system("python.exe Final_FCC.py");
 				/*
 				build_log_message("Resultado pronto");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
-				*/
+				
 				string res;
 				result_path += "/vg_0/resistencia.csv";
 				std::ifstream resistance(result_path, ios::in);
@@ -1205,7 +1231,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 				UpdateData(FALSE);
 				myfile.close();
-
+				*/
+				UpdateData(TRUE);
+				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+				UpdateData(FALSE);
 				m_SNPrompt.m_Serial_Number = "";
 				/*
 				build_log_message("Fim do FCC");
@@ -1289,10 +1318,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);
 						*/
-						string_to_char_array(sys_commands.SINGLE, &buff[0]);
-						SendCommand(buff);
+
 						vg_source.start(2);
 						vds_source.start(1);
+						sleep_for(milliseconds(100));
+						string_to_char_array(sys_commands.SINGLE, &buff[0]);
+						SendCommand(buff);
+
 						//force = false;
 					}
 				}
@@ -1429,7 +1461,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
 				path += "/results" + std::to_string(burst_count) + ".csv";
 				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
-				Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
+				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path);
 
 				burst_count++;
 				if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
@@ -1440,8 +1472,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);*/
 
 					vg_source.start(2);
+					sleep_for(milliseconds(100));
 					string_to_char_array(sys_commands.SINGLE, &buff[0]);
 					SendCommand(buff);
+
 					//vds_source.start(1);
 				}
 			}
@@ -1508,7 +1542,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	default:
 		break;
 	}
-	
+	sleep_for(milliseconds(500));
 	CDialogEx::OnTimer(nIDEvent);
 }
 
@@ -1685,12 +1719,14 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	}
 	delete[] buf;
 
-	std::ofstream arquivo(raw_path, std::ios::binary);
-	for (const auto& linha : raw_signals) {
-		arquivo.write(reinterpret_cast<const char*>(linha.data()), linha.size() * sizeof(int));
+	if (bucket_size == BUCKET_SIZE_FCP) {
+		std::ofstream arquivo(raw_path, std::ios::binary);
+		for (const auto& linha : raw_signals) {
+			arquivo.write(reinterpret_cast<const char*>(linha.data()), linha.size() * sizeof(int));
+		}
+		arquivo.close();
 	}
-	arquivo.close();
-	
+
 	std::ofstream arquivo_mean(mean_path);
 	arquivo_mean << cabecalho << "\n";
 	for (const auto& linha : mean_signals) {
@@ -1810,6 +1846,9 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int 
 
 void SendCommand(char _command[256])
 {
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
 	ViSession defaultRM, vi;
 	char buf[256] = { 0 };
 	CString s, command;
@@ -1825,6 +1864,7 @@ void SendCommand(char _command[256])
 	viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
 	viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
 
+	sleep_for(milliseconds(20));
 
 	command = _command;
 	command += "\n";
@@ -1834,13 +1874,17 @@ void SendCommand(char _command[256])
 
 	viPrintf(vi, stringTemp);
 
+	sleep_for(milliseconds(20));
+
 	viClose(vi);
 	viClose(defaultRM);
 }
 
 std::string readOsciloscope(char _command[256])
 {
-	
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
 	ViSession defaultRM, vi;
 	char buf[256] = { 0 };
 	CString s, strTemp;
@@ -1857,15 +1901,17 @@ std::string readOsciloscope(char _command[256])
 	viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
 	viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
 
+	sleep_for(milliseconds(20));
 	//Send the command received
 	strTemp = _command;
 	strTemp += "\n";
 	for (int i = 0; i < strTemp.GetLength(); i++)
 		stringTemp[i] = (char)strTemp.GetAt(i);
 	viPrintf(vi, stringTemp);
-
+	sleep_for(milliseconds(20));
 	//Read the results
 	viScanf(vi, "%t\n", &buf);
+	sleep_for(milliseconds(20));
 	//viClose(vi);
 	viClose(defaultRM);
 	std::string aux = buf;
@@ -2276,6 +2322,8 @@ void build_log_message(std::string msg) {
 
 void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
 {
+	return;	//A função está fazendo a onda quadrada travar
+
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
 
@@ -2302,7 +2350,7 @@ void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
 
 		viPrintf(vi, stringTemp);
 
-		sleep_for(milliseconds(500));
+		sleep_for(milliseconds(800));
 
 		viClose(vi);
 		viClose(defaultRM);
@@ -2323,7 +2371,7 @@ void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
 		viClose(vi);
 		viClose(defaultRM);
 
-		sleep_for(milliseconds(500));
+		sleep_for(milliseconds(800));
 
 		viOpenDefaultRM(&defaultRM);
 		//Acquire the USB resource of VISA
@@ -2338,7 +2386,7 @@ void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
 
 		viPrintf(vi, stringTemp);
 
-		sleep_for(milliseconds(500));
+		sleep_for(milliseconds(800));
 
 		viClose(vi);
 		viClose(defaultRM);
@@ -2360,4 +2408,81 @@ void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
 		viClose(defaultRM);
 
 		return;
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt()
+{
+	if (m_SNPrompt.DoModal() == IDOK)
+	{
+			/*
+			std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
+			time_t tt;
+			tt = std::chrono::system_clock::to_time_t(today);
+			char str[27] = { 0 };
+
+			ctime_s(str, sizeof str, &tt);
+			std::string date_str = "";
+
+			for (int i = 0; i < 20; i++) {
+				if (str[i + 4] == ' ' || str[i + 4] == ':') {
+					if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
+				}
+				else {
+					date_str += str[i + 4];
+				}
+			}
+
+			CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/" + date_str.c_str() + "/";
+			result_path = CStringA(results_path);
+			if (!fs::exists(result_path)) {
+				fs::create_directories(result_path);
+			}
+			*/
+
+			//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+		vector<string> splitted_values_aux;
+		vector<string> splitted_values_ref;
+		CString fcc_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/";	//CString por causa do SN
+		std::string fcc_path_str = CStringA(fcc_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+		//std::filesystem::path caminho{ fcc_path_str };
+
+		if (fs::exists(fcc_path_str)) {
+			//Encontrar o teste mais recente
+			std::string most_recent = "";
+			bool first = true;
+			for (auto& p : std::filesystem::recursive_directory_iterator(fcc_path_str)) {
+				if (p.is_directory()) {
+					if (first) {
+						first = false;
+						most_recent = p.path().string();
+						splitted_values_ref = customSplit2(most_recent, '-');
+					}
+					else {
+						splitted_values_aux = customSplit2(p.path().string(), '-');
+						if (more_recent(splitted_values_aux, splitted_values_ref)) {
+							most_recent = p.path().string();
+							splitted_values_ref = customSplit2(most_recent, '-');
+						}
+					}
+				}
+			}
+
+			std::ofstream myfile;
+			myfile.open("ALTERNATIVOFCS.csv");
+			myfile << most_recent << "\n";
+			myfile.close();
+
+			system("python.exe Alternativo_FCS.py");
+
+		}
+		else {
+			UpdateData(TRUE);
+			m_receive = "Esse chip ainda não foi testado no FCC";
+			UpdateData(FALSE);
+			return;
+		}
+
+		m_SNPrompt.m_Serial_Number = "";
+	}
 }

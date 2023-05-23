@@ -2,11 +2,7 @@ import struct
 
 with open('raw_data0.bin', 'rb') as arquivo:
     conteudo = arquivo.read()
-
-print(type(conteudo))
-print(len(conteudo))
-print(conteudo[3543])
-
+    
 time = []
 vds = []
 current = []

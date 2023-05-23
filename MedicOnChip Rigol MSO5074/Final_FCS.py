@@ -1,3 +1,4 @@
+print("Importando bibliotecas")
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,9 +10,8 @@ local= adress.loc[0][0]
 i=0
 result=pd.DataFrame
 dataFrame=list()
-
+print(local)
 for path, directories, files in os.walk(local):
-
     for arquivo in files:
         if ".csv" in arquivo:
             atual= path+ "\\"+"\\" + arquivo
@@ -26,7 +26,7 @@ for path, directories, files in os.walk(local):
 
 k=i             
 result=pd.concat(dataFrame)
-os.remove("FCS.csv")
+#os.remove("FCS.csv")
 
 ############################################
 ############################################
@@ -70,14 +70,12 @@ ax.scatter(descida["VG"],descida["RES"], color= 'blue')
 ax.set_xlabel("Tensão Vg")
 ax.set_ylabel("Resistência")
 ax.set_title("Resistência vs Vg")
-plt.show()
-
 
 Sub_Final= pd.DataFrame
 Des_Final=pd.DataFrame
 desLista.clear()
 sublista.clear()
-nPontosmedia=100 #numero de pontos agrupados
+nPontosmedia=150 #numero de pontos agrupados
 Ntotal=2000*k/2
 PontosFinais=Ntotal/nPontosmedia
 #print(PontosFinais)
@@ -90,6 +88,8 @@ for j in x:
 
 Sub_Final=pd.concat(sublista)
 Des_Final=pd.concat(desLista)
+
+print(Des_Final["RES"])
 
 index = Des_Final["RES"].values.argmax()
 vg_max = Des_Final["VG"][index]*0.80
@@ -110,7 +110,8 @@ ax.axvline(x = vg_min, color = 'green', linestyle=':')
 ax.set_xlabel("Tensão Vg")
 ax.set_ylabel("Resistência")
 ax.set_title("Resistência vs Vg")
-fig_path = local + "\\ResxVg"
+fig_path = local
+print(fig_path)
 print(fig_path)
 plt.savefig(local)
 plt.legend()

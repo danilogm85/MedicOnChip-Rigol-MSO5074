@@ -11,6 +11,7 @@ print("Iniciando calculo de resistências do canal")
 #Lê o arquivo que contém o endereço atual de processamento
 adress = pd.read_csv("diretorio.csv",header=None)
 local= adress.loc[0][0]
+print(os.path.isdir(local))
 i=0
 for path, directories, files in os.walk(local):
     if (i!=0):
@@ -49,6 +50,7 @@ for path, directories, files in os.walk(local):
         ax.set_xlabel("Corrente")
         ax.set_ylabel("Tensão")
         ax.set_title("Resistência do Canal via Regressão Linear: "+str(a)+" Ohms")
+        print(path)
         plt.savefig(path)
         print("Mostrando curva")
         plt.show()
@@ -67,4 +69,4 @@ for path, directories, files in os.walk(local):
     
     i=i+1
 
-os.remove("diretorio.csv")
+#os.remove("diretorio.csv")
