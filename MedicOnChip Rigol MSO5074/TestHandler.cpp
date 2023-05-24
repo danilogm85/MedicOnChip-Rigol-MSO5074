@@ -71,7 +71,8 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     parameters.vds_source_params.v_offset = stof(splitted_values[1]) - parameters.vds_source_params.v_pp/2;
     //Vds source will also be measured as a reference in CH1, so we need to setup the measurement channel vertical scale:
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
-    parameters.vds_meas_params.volts_div = stof(splitted_values[1])/4; //Vpeak*2/8 = Vpeak/4. We divide by ten because there are 8 divisions
+    //parameters.vds_meas_params.volts_div = stof(splitted_values[1])/4; //Vpeak*2/8 = Vpeak/4. We divide by ten because there are 8 divisions
+    parameters.current_meas_params.volts_div = stof(splitted_values[1]) / 4; //Vpeak*2/8 = Vpeak/4. We divide by ten because there are 8 divisions
 
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
@@ -92,7 +93,8 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     //Read max expected current to calculate the vertical scale of the channel
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
     read_values = ini.get("FCC").get("MAX_CURR_EXPECT");
-    parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
+    //parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
+    parameters.vds_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
 
    // parameters.vg_source_params.v_pp = parameters.vg_vector[0];
     //parameters.vg_source_params.v_offset = parameters.vg_vector[0];
@@ -172,11 +174,13 @@ FCS_parameters TestHandler::get_fcs_parameters() {
 
     //Read max expected current to calculate the vertical scale of the channel
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
-    read_values = ini.get("FCS").get("MAX_CURR_EXPECT");
-    parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
+    read_values = ini.get("FCS").get("MAX_VDS_EXPECT=0.05");
+    //parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
+    parameters.vds_meas_params.volts_div = stof(read_values); //8 divisions
 
     //VDS measurement parameters
-    parameters.vds_meas_params.volts_div = parameters.vds_source_params.v_offset / 2;
+    //parameters.vds_meas_params.volts_div = parameters.vds_source_params.v_offset / 2;
+    parameters.current_meas_params.volts_div = parameters.vds_source_params.v_offset / 2;
 
     parameters.bursts = stoul(ini.get("FCS").get("BURSTS"));
 
@@ -198,6 +202,9 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     parameters.vds_meas_params.Id = 1;
     //parameters.current_meas_params.Id = 2;
     parameters.vg_meas_params.Id = 3;
+    parameters.vds_source_params.Id = 1;
+    parameters.vds_source_params.wave_type = "DC";
+    parameters.current_meas_params.Id = 2;
 
     //Aux variables
     string read_values;
@@ -230,12 +237,16 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     //Read max expected current to calculate the vertical scale of the channel
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
     //read_values = ini.get("FCS").get("MAX_CURR_EXPECT");
-    //parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
 
     //VDS measurement parameters
     parameters.vds_meas_params.volts_div = stof(ini.get("FCP").get("MAX_VDS_EXPECT")) / 4;
 
     parameters.bursts = stoul(ini.get("FCP").get("BURSTS"));
+
+    //Read Vg values and build vector
+    parameters.vds_source_params.v_pp = 0;
+    parameters.vds_source_params.v_offset = stof(ini.get("FCP").get("CURR_SOURCE_BIAS"));
+    parameters.current_meas_params.volts_div = parameters.vds_source_params.v_offset/2; //8 divisions
 
     return parameters;
 }

@@ -18,7 +18,7 @@ for path, directories, files in os.walk(local):
             burst= pd.read_csv(atual, sep=";")
             burst.columns=["time","VDS","ID","VG"]
             burst=burst.astype("Float64")
-            burst["ID"]=burst["ID"]/5000 
+            burst["ID"]=burst["ID"]*0.0001 
             burst["RES"]=burst["VDS"]/burst["ID"]
             dataFrame.append(burst)   
             i=i+1  

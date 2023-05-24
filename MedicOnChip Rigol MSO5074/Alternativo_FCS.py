@@ -21,22 +21,30 @@ for path, directories, files in os.walk(local):
             info.append(item)
     i=i+1
 
+
 dataFrame=pd.concat(info)
 dataFrame=dataFrame.reset_index()
 dataFrame=dataFrame.drop(columns='index')
+
+dataFrame = dataFrame.sort_values(by=["VG"])
+dataFrame = dataFrame.reset_index()
+
 print(dataFrame)
 
 deltaR=dataFrame["Resistencia"].diff()
 deltaVG=dataFrame["VG"].diff()
 
+print(deltaR,deltaVG)
+
+dataFrame["dR/dVg"]=deltaR/deltaVG
 fig, ax=plt.subplots()
 ax.scatter(dataFrame["VG"],dataFrame["Resistencia"],color='red')
-ax.scatter(dataFrame["VG"],deltaR/deltaVG, color="blue")
+#ax.scatter(dataFrame["VG"],dataFrame["dR/dVg"], color="blue")
 ax.set_xlabel("VG [V]")
 ax.set_ylabel("Resistência [OHM]")
 ax.set_title("Resistência Canal vs VG ")
 plt.savefig(FCS+"\\FCS.png")
-
 plt.show()
 dataFrame.to_csv(FCS+"\\FCS.csv", index=False,sep=';')
 
+#os.remove("ALTERNATIVOFCS.csv")

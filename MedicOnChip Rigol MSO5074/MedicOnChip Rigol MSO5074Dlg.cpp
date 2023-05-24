@@ -872,6 +872,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 						trigger_parameters.level = max - results_fcp.vg_source_params.v_pp/2;
 						results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
 						results_fcp.vg_meas_params.volts_div = max / 4;
+
 					}
 					else {
 						UpdateData(TRUE);
@@ -929,13 +930,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				tester.set_t_scale(results_fcp.t_scale);
 				//Set measurement channels
 				vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
-				//current_meas.write_parameters_to_osc(results_fcs.current_meas_params);
+				current_meas.write_parameters_to_osc(results_fcp.current_meas_params);
 				vg_meas.write_parameters_to_osc(results_fcp.vg_meas_params);
 				//Set trigger
 				trigger_parameters.source = "CHAN3";
 				tester.send_trigger_parameters(trigger_parameters);
 
-				//vds_source.write_parameters_to_osc(results_fcs.vds_source_params);
+				vds_source.write_parameters_to_osc(results_fcp.vds_source_params);
 				vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
 
 				char buff[10] = { 0 };
@@ -1191,7 +1192,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				//LPCTSTR blabla = path.c_str();
 
 				//system("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py");
-				system("python.exe Final_FCC.py");
+				system("python.exe FCC_Current_Source.py");
+
 				/*
 				build_log_message("Resultado pronto");
 				UpdateData(TRUE);
@@ -1365,7 +1367,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					myfile << result_path << "\n";
 					myfile.close();
 
-					system("python.exe Final_FCS.py");
+					system("python.exe FCS_Current_Source.py");
 					/*
 					build_log_message("Resultado pronto");
 					UpdateData(TRUE);

@@ -87,6 +87,8 @@ struct FCS_parameters {
 struct FCP_parameters {
 	//SourceChannel_parameters vds_source_params;
 	SourceChannel_parameters vg_source_params;
+	SourceChannel_parameters vds_source_params;
+	MeasurementChannel_parameters current_meas_params;
 	MeasurementChannel_parameters vds_meas_params;
 	//MeasurementChannel_parameters current_meas_params;
 	MeasurementChannel_parameters vg_meas_params;
