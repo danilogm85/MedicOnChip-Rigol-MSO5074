@@ -57,6 +57,7 @@ CString database_path = CString("database/");
 std::string result_path = "";
 vector <std::string> log_lines;
 bool flag_reset_waveform = true;
+bool flag_run_all = false;
 
 // CAboutDlg dialog used for App About
 
@@ -112,7 +113,6 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	SendCommand(buff);
 	string_to_char_array(sys_commands.HRES, &buff[0]);
 	SendCommand(buff);
-
 }
 
 
@@ -143,7 +143,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ADQUIRIR, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_FCC, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC)
-	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)
+	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)/*
 	ON_BN_CLICKED(IDC_BUTTON1, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1)
 	ON_BN_CLICKED(IDC_BUTTON2, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton3)
@@ -151,11 +151,14 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON5, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton5)
 	ON_BN_CLICKED(IDC_BUTTON6, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton6)
 	ON_BN_CLICKED(IDC_BUTTON7, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton7)
-	ON_BN_CLICKED(IDC_BUTTON8, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8)
+	ON_BN_CLICKED(IDC_BUTTON8, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8)*/
 	ON_BN_CLICKED(IDC_BUTTON9, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9)
 	ON_BN_CLICKED(IDC_BUTTON_FCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp)
 	//ON_BN_CLICKED(IDC_BUTTON10, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton10)
 	ON_BN_CLICKED(IDC_BUTTON_FCS_ALT, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt)
+	//ON_BN_CLICKED(IDC_NEWFCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp)
+	ON_BN_CLICKED(IDC_BUTTON_FCP_Alt, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt)
+	ON_BN_CLICKED(IDC_BUTTON_RUNALL, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall)
 END_MESSAGE_MAP()
 
 
@@ -409,7 +412,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 
 	if (!m_bAquisicaoAtiva)
 	{
-		if (m_SNPrompt.DoModal() == IDOK) {
+		int status_sn_prompt = 0;
+		if (!flag_run_all) {
+			status_sn_prompt = m_SNPrompt.DoModal();
+		}
+		if (status_sn_prompt == IDOK || flag_run_all) {
 			if (iniciarAquisicao()) {
 				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
@@ -419,7 +426,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
 
 				//char bufff[24] = { 0 };
-				reset_square_wave();
+				//reset_square_wave();
 
 				num_bursts = results.bursts;
 
@@ -470,7 +477,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				current_meas.write_parameters_to_osc(results.current_meas_params);
 				vg_meas.write_parameters_to_osc(results.vg_meas_params);
 				//Set trigger
-				trigger_parameters.source = "CHAN1";
+				trigger_parameters.source = "CHAN2";
 				trigger_parameters.level = 0.01;
 				tester.send_trigger_parameters(trigger_parameters);
 				//Set Source channels
@@ -510,7 +517,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 
 				vg_source.start(2);
 				vds_source.start(1);
-				sleep_for(milliseconds(100));
+				sleep_for(milliseconds(1000));
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
 				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
@@ -589,7 +596,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 		burst_count = 0;
 		stopped = false;
 		started = false;
-		m_SNPrompt.m_Serial_Number = "";
+		if(!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
@@ -616,8 +623,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 	// TODO: Add your control notification handler code here
 	if (!m_bAquisicaoAtiva)
 	{
-		if (m_SNPrompt.DoModal() == IDOK)
-		{
+		int status_sn_prompt = 0;
+		if (!flag_run_all) {
+			status_sn_prompt = m_SNPrompt.DoModal();
+		}
+		if (status_sn_prompt == IDOK || flag_run_all){
 			if (iniciarAquisicao()) {
 				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
@@ -679,7 +689,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
-				reset_square_wave();
+				//reset_square_wave();
 
 				num_bursts = results_fcs.bursts;
 
@@ -770,7 +780,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 		burst_count = 0;
 		stopped = false;
 		started = false;
-		m_SNPrompt.m_Serial_Number = "";
+		if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 		
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
@@ -967,13 +977,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
 				//SendCommand(buff);
 
-
+				vds_source.start(1);
 				vg_source.start(2);
 				sleep_for(milliseconds(100));
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
 
-				//vds_source.start(1);
+				
 
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCP, 1000, NULL);
@@ -1158,7 +1168,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						sleep_for(milliseconds(300));
 						vg_source.start(2);
 						vds_source.start(1);
-						sleep_for(milliseconds(100));
+						sleep_for(milliseconds(1000));
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
 
@@ -1237,7 +1247,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				UpdateData(TRUE);
 				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
 				UpdateData(FALSE);
-				m_SNPrompt.m_Serial_Number = "";
+				if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 				/*
 				build_log_message("Fim do FCC");
 				UpdateData(TRUE);
@@ -1245,6 +1255,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				UpdateData(FALSE);
 				*/
 				OnBnClickedButtonFCC();
+				if (flag_run_all) {
+					OnBnClickedButtonFCS();
+				}
 			}
 		}
 		else {/*
@@ -1378,7 +1391,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
 					UpdateData(FALSE);
 
-					m_SNPrompt.m_Serial_Number = "";
+					if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 					/*
 					build_log_message("Fim do FCS");
 					UpdateData(TRUE);
@@ -1386,6 +1399,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);
 					*/
 					OnBnClickedButtonFCS();
+					if (flag_run_all) {
+						OnBnClickedButtonFcpAlt();
+					}
 				}
 			//}
 		}
@@ -1408,8 +1424,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			stopped = true;
 		}*/
 
-		if (trg_status == "STOP\n") {
+		//if (trg_status == "STOP\n") {
 			
+		string_to_char_array(sys_commands.STOP, &buff[0]);
+		SendCommand(buff);
+
 			if (burst_count < num_bursts) {
 				/*
 				std::string msg = "Aquisição encerrada, BURST " + std::to_string(burst_count);
@@ -1418,7 +1437,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
-				//vds_source.stop(1);
+				vds_source.stop(1);
 				vg_source.stop(2);
 				std::string path = result_path;
 				if (!fs::exists(path)) {/*
@@ -1472,7 +1491,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);*/
-
+					vds_source.start(1);
 					vg_source.start(2);
 					sleep_for(milliseconds(100));
 					string_to_char_array(sys_commands.SINGLE, &buff[0]);
@@ -1490,6 +1509,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				burst_count = 0;
 				stopped = false;
 				started = false;
+				vds_source.stop(1);
 				vg_source.stop(2);
 				//vds_source.stop(1);
 				/*
@@ -1523,15 +1543,18 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				UpdateData(FALSE);*/
 
 				reset_square_wave();
-				OnBnClickedButtonFcp();
+				OnBnClickedButtonFcpAlt();
+				if (flag_run_all) {
+					flag_run_all = false;
+				}
 			}
-		}
-		else {/*
+		/*}
+		else {
 			build_log_message("Aquisição em progresso");
 			UpdateData(TRUE);
 			m_receive = tester.log_string.c_str();
-			UpdateData(FALSE);*/
-		}
+			UpdateData(FALSE);
+		}*/
 		break;
 	/*case ID_TIMER_RESET:
 		//string_to_char_array(":SOURce1:FUNCtion RAMP\n", &buff2[0]);
@@ -1920,7 +1943,7 @@ std::string readOsciloscope(char _command[256])
 	return  aux;
 };
 
-
+/*
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1()
 {
 	TestHandler teste;
@@ -2224,14 +2247,14 @@ void media_CSV_Osciloscopio(std::filesystem::path caminho) {
 	delete[] buffer;
 
 }
-
+*/
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
 {
 	// TODO: Add your control notification handler code here
 	
 	const std::filesystem::path pasta{ "Arquivos csv" };
 	
-	media_CSV_Osciloscopio(pasta);
+	//media_CSV_Osciloscopio(pasta);
 }
 
 // Custom split() function (https://favtutor.com/blogs/split-string-cpp)
@@ -2324,8 +2347,6 @@ void build_log_message(std::string msg) {
 
 void CMedicOnChipRigolMSO5074Dlg::reset_square_wave()
 {
-	return;	//A função está fazendo a onda quadrada travar
-
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
 
@@ -2486,5 +2507,259 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt()
 		}
 
 		m_SNPrompt.m_Serial_Number = "";
+	}
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
+{
+	//vg_index = vg_index;
+	using namespace std::this_thread; // sleep_for, sleep_until
+	using namespace std::chrono; // nanoseconds, system_clock, seconds
+
+	if (!m_bAquisicaoAtiva)
+	{
+		int status_sn_prompt = 0;
+		if (!flag_run_all) {
+			status_sn_prompt = m_SNPrompt.DoModal();
+		}
+		if (status_sn_prompt == IDOK || flag_run_all)
+		{
+			if (iniciarAquisicao()) {
+				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("Encerrar"));
+
+				num_bursts = results_fcp.bursts;
+
+				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
+				time_t tt;
+				tt = std::chrono::system_clock::to_time_t(today);
+				char str[27] = { 0 };
+
+				ctime_s(str, sizeof str, &tt);
+				std::string date_str = "";
+
+				for (int i = 0; i < 20; i++) {
+					if (str[i + 4] == ' ' || str[i + 4] == ':') {
+						if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
+					}
+					else {
+						date_str += str[i + 4];
+					}
+				}
+
+				//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+				vector<string> splitted_values_aux;
+				vector<string> splitted_values_ref;
+				CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
+				std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+				std::filesystem::path caminho{ vg_values_path };
+
+				if (fs::exists(vg_values_path)) {
+					//Encontrar o teste mais recente
+					std::string most_recent = "";
+					bool first = true;
+					for (auto& p : std::filesystem::recursive_directory_iterator(vg_values_path)) {
+						if (p.is_directory()) {
+							if (first) {
+								first = false;
+								most_recent = p.path().string();
+								splitted_values_ref = customSplit2(most_recent, '-');
+
+							}
+							else {
+								splitted_values_aux = customSplit2(p.path().string(), '-');
+								if (more_recent(splitted_values_aux, splitted_values_ref)) {
+									most_recent = p.path().string();
+									splitted_values_ref = customSplit2(most_recent, '-');
+								}
+							}
+						}
+					}
+
+					vg_values_path = most_recent + "/vg_values.ini";
+
+					//Verificar se no teste mais recente existem os valores de VG
+					if (fs::exists(vg_values_path)) {
+
+						mINI::INIFile file(vg_values_path);
+						mINI::INIStructure ini;
+						file.read(ini);
+						float min = stof(ini.get("VG").get("MIN"));
+						float max = stof(ini.get("VG").get("MAX"));
+
+						results_fcp.vg_source_params.v_pp = max - min;
+						trigger_parameters.level = max - results_fcp.vg_source_params.v_pp / 2;
+						results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
+						results_fcp.vg_meas_params.volts_div = max / 4;
+
+					}
+					else {
+						UpdateData(TRUE);
+						m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
+						UpdateData(FALSE);
+
+						encerrarAquisicao();
+						for (int i = 0; i < m_numCanais; i++) {
+							m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+							m_pwndGraficoCanal[i].limpaGrafico();
+						}
+
+						GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("FCP Alt."));
+
+						return;
+					}
+				}
+				else {
+					UpdateData(TRUE);
+					m_receive = "Esse chip ainda não foi testado no FCS";
+					UpdateData(FALSE);
+
+					encerrarAquisicao();
+					for (int i = 0; i < m_numCanais; i++) {
+						m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+						m_pwndGraficoCanal[i].limpaGrafico();
+					}
+					GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("FCP Alt."));
+
+					return;
+				}
+
+				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
+				result_path = CStringA(results_path);
+				if (!fs::exists(result_path)) {
+					fs::create_directories(result_path);
+				}
+
+				//Mostra os gráficos
+				for (int i = 0; i < m_numCanais; i++)
+					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
+
+				//Set time scale
+				//
+				tester.set_t_scale(results_fcp.t_scale);
+				//Set measurement channels
+				vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
+				current_meas.write_parameters_to_osc(results_fcp.current_meas_params);
+				vg_meas.write_parameters_to_osc(results_fcp.vg_meas_params);
+				//Set trigger
+				trigger_parameters.source = "CHAN3";
+				tester.send_trigger_parameters(trigger_parameters);
+				//tester.triggerMode_FCP();//qlq coisa vai nessa função e muda trigger para Normal
+				vds_source.write_parameters_to_osc(results_fcp.vds_source_params);
+				vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
+
+
+				//set Acquire
+				char buff[10] = { 0 };
+				string_to_char_array(sys_commands.RUN, &buff[0]);
+				SendCommand(buff);
+				sleep_for(milliseconds(500));
+				tester.type_Aquire(results_fcp);
+				sleep_for(milliseconds(500));
+				tester.aquire_Numb_averages(results_fcp);
+				float delay_time = 1000*results_fcp.AquireAverages * results_fcp.vg_source_params.cycles/ results_fcp.vg_source_params.freq;
+				delay_time = delay_time * 1.2;
+
+				
+				/*
+				//Set High Res and 1M points
+				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
+				SendCommand(buff);
+				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
+				SendCommand(buff);
+				*/
+				//Stop
+				string_to_char_array(sys_commands.STOP, &buff[0]);
+				SendCommand(buff);
+
+				//Limpa tela
+				string_to_char_array(sys_commands.CLEAR, &buff[0]);
+				SendCommand(buff);
+
+				//Desliga canais de fontes
+				vds_source.stop(1);
+				vg_source.stop(2);
+
+				//Liga canais de medição
+				vds_meas.on();
+				//current_meas.on();
+				vg_meas.on();
+
+				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
+				//SendCommand(buff);
+
+				vds_source.start(1);
+				vg_source.start(2);
+				sleep_for(milliseconds(100));
+				string_to_char_array(sys_commands.RUN, &buff[0]);
+				SendCommand(buff);
+
+				//Ativa o timer
+				SetTimer(ID_TIMER_FCP, delay_time, NULL);
+			}
+		}
+	}
+	else
+	{
+		KillTimer(ID_TIMER_FCP);
+
+		vg_source.stop(2);
+		//vds_source.stop(1);
+		burst_count = 0;
+		stopped = false;
+		started = false;
+		m_SNPrompt.m_Serial_Number = "";
+
+		char buff[10] = { 0 };
+		string_to_char_array(sys_commands.RUN, &buff[0]);
+		SendCommand(buff);
+		sleep_for(milliseconds(500));
+		results_fcp.AquireType = "HRES";
+		tester.type_Aquire(results_fcp);
+
+		encerrarAquisicao();
+		for (int i = 0; i < m_numCanais; i++) {
+			m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+			m_pwndGraficoCanal[i].limpaGrafico();
+		}
+
+		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("FCP Alt."));
+	}
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
+{
+	if (m_SNPrompt.DoModal() == IDOK) {
+		flag_run_all = true;
+		OnBnClickedButtonFCC(); 
 	}
 }

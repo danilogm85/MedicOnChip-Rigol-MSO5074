@@ -57,4 +57,4 @@ for path, directories, files in os.walk(local):
     
     i=i+1
 
-#os.remove("C:\\Users\\Mediconchip\\Desktop\\diretorio.csv")
+#os.remove("diretorio.csv")

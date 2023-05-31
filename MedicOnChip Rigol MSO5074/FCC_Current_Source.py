@@ -5,8 +5,13 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
+import configparser
 
 print("Calculando")
+
+config= configparser.ConfigParser()
+config.read("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\MedicOnChip Rigol MSO5074\\config.ini")
+gain_CURRENT=float(config.get('FCS','CURRENT_GAIN'))
 
 #Lê o arquivo que contém o endereço atual de processamento
 adress = pd.read_csv("diretorio.csv",header=None)
@@ -22,7 +27,7 @@ for path, directories, files in os.walk(local):
                 burst= pd.read_csv(atual, sep=";")
                 burst.columns=["time","VDS","ID","VG"]
                 burst=burst.astype("Float64")
-                burst["ID"]=burst["ID"]*0.0001
+                burst["ID"]=burst["ID"]*gain_CURRENT
                 dataFrames.append(burst)
 
         result = pd.concat(dataFrames)
@@ -48,7 +53,7 @@ for path, directories, files in os.walk(local):
             'Resistencia':a,
             'Condutancia':1/a,
             "VG":result["VG"].mean(),
-            "Coef. Linear":b
+            "Coef. Linear RES":b
         }
         data=pd.DataFrame(parametros)        
         #data.to_csv(path_or_buf=path+ "\\resistencia"+"_VG_"+str(result["VG"].mean()) + ".csv", sep=";",index=False)     

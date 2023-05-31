@@ -40,6 +40,7 @@ dataFrame["dR/dVg"]=deltaR/deltaVG
 fig, ax=plt.subplots()
 ax.scatter(dataFrame["VG"],dataFrame["Resistencia"],color='red')
 #ax.scatter(dataFrame["VG"],dataFrame["dR/dVg"], color="blue")
+#ax.scatter(dataFrame["VG"],deltaR, color="black")
 ax.set_xlabel("VG [V]")
 ax.set_ylabel("Resistência [OHM]")
 ax.set_title("Resistência Canal vs VG ")

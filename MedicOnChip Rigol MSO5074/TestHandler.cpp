@@ -77,7 +77,7 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
     parameters.vds_source_params.cycles = stoul(ini.get("FCC").get("CYCLES"));
-    parameters.vds_source_params.freq = stoul(ini.get("FCC").get("FREQ"));
+    parameters.vds_source_params.freq = stof(ini.get("FCC").get("FREQ"));
     parameters.t_scale = float(parameters.vds_source_params.cycles) / (float(parameters.vds_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
     
     //Read RG_LIMITS
@@ -92,9 +92,9 @@ FCC_parameters TestHandler::get_fcc_parameters(){
 
     //Read max expected current to calculate the vertical scale of the channel
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
-    read_values = ini.get("FCC").get("MAX_CURR_EXPECT");
+    read_values = ini.get("FCC").get("MAX_VDS_EXPECT");
     //parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
-    parameters.vds_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
+    parameters.vds_meas_params.volts_div = stof(read_values)/4; //8 divisions
 
    // parameters.vg_source_params.v_pp = parameters.vg_vector[0];
     //parameters.vg_source_params.v_offset = parameters.vg_vector[0];
@@ -164,7 +164,7 @@ FCS_parameters TestHandler::get_fcs_parameters() {
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
     parameters.vg_source_params.cycles = stoul(ini.get("FCS").get("CYCLES"));
-    parameters.vg_source_params.freq = stoul(ini.get("FCS").get("FREQ"));
+    parameters.vg_source_params.freq = stof(ini.get("FCS").get("FREQ"));
     parameters.t_scale = float(parameters.vg_source_params.cycles) / (float(parameters.vg_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
     //log_string = to_string(parameters.vds_source_params.freq);
 
@@ -174,7 +174,7 @@ FCS_parameters TestHandler::get_fcs_parameters() {
 
     //Read max expected current to calculate the vertical scale of the channel
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
-    read_values = ini.get("FCS").get("MAX_VDS_EXPECT=0.05");
+    read_values = ini.get("FCS").get("MAX_VDS_EXPECT");
     //parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
     parameters.vds_meas_params.volts_div = stof(read_values); //8 divisions
 
@@ -205,7 +205,6 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     parameters.vds_source_params.Id = 1;
     parameters.vds_source_params.wave_type = "DC";
     parameters.current_meas_params.Id = 2;
-
     //Aux variables
     string read_values;
     //vector<string> splitted_values;
@@ -226,8 +225,9 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
     parameters.vg_source_params.cycles = stoul(ini.get("FCP").get("CYCLES"));
-    parameters.vg_source_params.freq = stoul(ini.get("FCP").get("FREQ"));
+    parameters.vg_source_params.freq = stof(ini.get("FCP").get("FREQ"));
     parameters.t_scale = float(parameters.vg_source_params.cycles) / (float(parameters.vg_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
+    parameters.AquireAverages= stoul(ini.get("FCP").get("ACQUIRE_AVG"));
     log_string = to_string(parameters.t_scale);
 
     //Read transimpedance amp gain and voltage drop
@@ -336,6 +336,11 @@ bool TestHandler::set_trigger_mode(std::string mode)
 {
     return false;
 };
+void TestHandler::triggerMode_FCP() {
+    char SCPI_command[256];
+    string_to_char_array(sys_commands.RUN, SCPI_command);
+    SendCommand(SCPI_command);    
+};
 
 //Get horizontal (time) scale. Usefull to check if set_t_scale() function worked.
 //Output: time scale (seconds/div)
@@ -370,7 +375,19 @@ void TestHandler::clear_screen(){
     SendCommand(channel_4);
 
 };
-
+void TestHandler::aquire_Numb_averages(FCP_parameters parameters) {
+    std::string Aquire_N_AVERAGES = ":ACQuire:AVERages "+to_string(parameters.AquireAverages) + "\n";
+    char SCPI_Numb_averages[256];
+    string_to_char_array(Aquire_N_AVERAGES,SCPI_Numb_averages);
+    
+    SendCommand(SCPI_Numb_averages);
+};
+void TestHandler::type_Aquire(FCP_parameters parameters) {
+    std::string Aquire_TYPE = ":ACQuire:TYPE " + parameters.AquireType + "\n";
+    char SCPI_TYPE[256];
+    string_to_char_array(Aquire_TYPE,SCPI_TYPE);
+    SendCommand(SCPI_TYPE);
+};
 //Config trigger, time scale, source and measurement channels and let osciloscope ready to run FCC
 //Output: boolean success/fail flag (true=success)
 bool TestHandler::set_osc_to_fcc(FCC_parameters parameters)

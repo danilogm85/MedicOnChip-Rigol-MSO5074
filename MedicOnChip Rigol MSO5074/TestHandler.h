@@ -19,8 +19,8 @@ const struct Waves{
 */
 const struct sys_commands {	
 	std::string STOP = ":STOP";
-	std::string RUN = ":RUN";
-	std::string SINGLE = ":SINGle";
+	std::string RUN = ":RUN\n";
+	std::string SINGLE = ":SINGle \n";
 	std::string TFORCE = ":TFORce";
 	std::string CLEAR = ":CLEar";
 	std::string MDEPTH = ":ACQuire:MDEPth 1M";
@@ -39,7 +39,7 @@ struct SourceChannel_parameters{
 	float v_offset = 0;
 	std::string wave_type = "none";
 	unsigned int Id = 0;
-	unsigned int freq = 0;
+	float freq = 0;
 	unsigned int cycles=0;	//Number of cycles of the burst
 	std::string generatorType = "none";
 	std::string Burst_Type = "none";
@@ -94,6 +94,8 @@ struct FCP_parameters {
 	MeasurementChannel_parameters vg_meas_params;
 	float t_scale;
 	unsigned int bursts = 1;
+	int AquireAverages = 2;
+	std::string AquireType = "AVERages";
 	//float g_tia;
 	//float v_tia;
 	//std::map<std::string, float> rg_limits;
@@ -108,11 +110,14 @@ public:
 	~TestHandler();
 	Trigger_parameters read_trigger_parameters();			//ID 1
 	bool send_trigger_parameters(Trigger_parameters parameters);		//ID 2 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
-	std::string read_trigger_status();						//ID 3
+	std::string read_trigger_status();	
+	void triggerMode_FCP();//ID 3
 	bool set_trigger_mode(std::string mode);				//ID 4
 	bool set_t_scale(float t_scale);						//ID 5 - QUASE OK, FALTA A VERIFICAÇÃO SE CONFIGUROU CERTO
 	float get_t_scale();									//ID 6
-	void clear_screen();									//ID 7
+	void clear_screen();	
+	void aquire_Numb_averages(FCP_parameters parameters);//ID 7
+	void type_Aquire(FCP_parameters parameters);
 	FCC_parameters get_fcc_parameters();					//ID 8
 	FCS_parameters get_fcs_parameters();				
 	FCP_parameters get_fcp_parameters();

@@ -52,26 +52,20 @@
 #define IDC_STATIC_Ng                   1029
 #define IDC_EDIT_FCS_Vsd2               1029
 #define IDC_EDIT_FCS_NAve               1029
-#define IDC_BUTTON1                     1029
 #define IDC_EDIT_Nsd                    1030
 #define IDC_STATIC_FCS_NAve             1030
-#define IDC_BUTTON2                     1030
 #define IDC_STATIC_Nsd                  1031
-#define IDC_BUTTON3                     1031
-#define IDC_BUTTON4                     1032
-#define IDC_BUTTON5                     1033
-#define IDC_BUTTON6                     1034
-#define IDC_BUTTON7                     1035
-#define IDC_BUTTON8                     1036
+#define IDC_BUTTON_FCP_Alt              1031
 #define IDC_EDIT1                       1037
 #define IDC_EDIT_SN                     1037
 #define IDC_RESULTS                     1037
-#define IDC_BUTTON9                     1038
 #define IDC_TEST_RESULTS                1038
 #define IDC_txt                         1040
 #define IDC_BUTTON_FCP                  1041
-#define IDC_BUTTON10                    1043
 #define IDC_BUTTON_FCS_ALT              1043
+#define IDC_BUTTON9                     1044
+#define IDC_BUTTON1                     1045
+#define IDC_BUTTON_RUNALL               1045
 
 // Next default values for new objects
 // 
@@ -79,7 +73,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        145
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1044
+#define _APS_NEXT_CONTROL_VALUE         1046
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

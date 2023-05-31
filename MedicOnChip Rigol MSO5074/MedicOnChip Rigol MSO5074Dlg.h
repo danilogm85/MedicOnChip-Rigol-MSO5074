@@ -86,7 +86,7 @@ protected:
 public:
 	afx_msg void OnBnClickedButtonFCC();
 	afx_msg void OnBnClickedButtonFCS();
-	
+	/*
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedButton3();
@@ -94,13 +94,16 @@ public:
 	afx_msg void OnBnClickedButton5();
 	afx_msg void OnBnClickedButton6();
 	afx_msg void OnBnClickedButton7();
-	afx_msg void OnBnClickedButton8();
+	afx_msg void OnBnClickedButton8();*/
 
 	CString m_results_display;
 	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButtonFcp();
 	void CMedicOnChipRigolMSO5074Dlg::reset_square_wave();
 	afx_msg void OnBnClickedButtonFcsAlt();
+	//afx_msg void OnBnClickedNewfcp();
+	afx_msg void OnBnClickedButtonFcpAlt();
+	afx_msg void OnBnClickedButtonRunall();
 };
 
 void SendCommand(char command[256]);

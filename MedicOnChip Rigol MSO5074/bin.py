@@ -1,6 +1,6 @@
 import struct
 
-with open('raw_data0.bin', 'rb') as arquivo:
+with open('raw_data0.dat', 'rb') as arquivo:
     conteudo = arquivo.read()
     
 time = []
