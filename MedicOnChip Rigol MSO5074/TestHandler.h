@@ -67,6 +67,7 @@ struct FCC_parameters{
 	std::map<std::string,float> rg_limits;
 	std::vector<float> vg_vector;
 	unsigned int bursts = 1;
+	std::string AquireType = "HRES";
 };
 
 struct FCS_parameters {
@@ -82,6 +83,7 @@ struct FCS_parameters {
 	//std::vector<float> vg_vector;
 	float flat_region_width;
 	unsigned int bursts = 1;
+	std::string AquireType = "HRES";
 };
 
 struct FCP_parameters {
@@ -95,7 +97,7 @@ struct FCP_parameters {
 	float t_scale;
 	unsigned int bursts = 1;
 	int AquireAverages = 2;
-	std::string AquireType = "AVERages";
+	std::string AquireType = "AVER";
 	//float g_tia;
 	//float v_tia;
 	//std::map<std::string, float> rg_limits;
@@ -117,7 +119,7 @@ public:
 	float get_t_scale();									//ID 6
 	void clear_screen();	
 	void aquire_Numb_averages(FCP_parameters parameters);//ID 7
-	void type_Aquire(FCP_parameters parameters);
+	void type_Aquire(std::string type);
 	FCC_parameters get_fcc_parameters();					//ID 8
 	FCS_parameters get_fcs_parameters();				
 	FCP_parameters get_fcp_parameters();

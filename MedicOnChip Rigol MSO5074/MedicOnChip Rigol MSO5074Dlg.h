@@ -106,5 +106,5 @@ public:
 	afx_msg void OnBnClickedButtonRunall();
 };
 
-void SendCommand(char command[256]);
+bool SendCommand(char command[256], bool check_response_loop = false, char check_command[256] = {0}, std::string expected_msg = "");
 std::string readOsciloscope(char command[256]);

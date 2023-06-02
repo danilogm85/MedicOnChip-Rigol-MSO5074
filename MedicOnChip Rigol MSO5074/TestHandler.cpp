@@ -376,17 +376,17 @@ void TestHandler::clear_screen(){
 
 };
 void TestHandler::aquire_Numb_averages(FCP_parameters parameters) {
-    std::string Aquire_N_AVERAGES = ":ACQuire:AVERages "+to_string(parameters.AquireAverages) + "\n";
+    std::string Aquire_N_AVERAGES = ":ACQuire:AVER "+to_string(parameters.AquireAverages) + "\n";
     char SCPI_Numb_averages[256];
     string_to_char_array(Aquire_N_AVERAGES,SCPI_Numb_averages);
     
     SendCommand(SCPI_Numb_averages);
 };
-void TestHandler::type_Aquire(FCP_parameters parameters) {
-    std::string Aquire_TYPE = ":ACQuire:TYPE " + parameters.AquireType + "\n";
+void TestHandler::type_Aquire(std::string type) {
+    std::string Aquire_TYPE = ":ACQuire:TYPE " + type + "\n";
     char SCPI_TYPE[256];
     string_to_char_array(Aquire_TYPE,SCPI_TYPE);
-    SendCommand(SCPI_TYPE);
+    SendCommand(SCPI_TYPE, true, ":ACQuire:TYPE?", type);
 };
 //Config trigger, time scale, source and measurement channels and let osciloscope ready to run FCC
 //Output: boolean success/fail flag (true=success)
