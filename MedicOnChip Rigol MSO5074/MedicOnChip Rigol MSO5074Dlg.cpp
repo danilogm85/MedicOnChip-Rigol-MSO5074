@@ -1,7 +1,7 @@
 
 // MedicOnChip Rigol MSO5074Dlg.cpp : implementation file
 //
-
+D
 #include "pch.h"
 #include "framework.h"
 #include "MedicOnChip Rigol MSO5074.h"
@@ -58,6 +58,9 @@ std::string result_path = "";
 vector <std::string> log_lines;
 bool flag_reset_waveform = true;
 bool flag_run_all = false;
+bool flag_fcc = false;
+bool flag_fcs = false;
+bool flag_fcp = false;
 
 // CAboutDlg dialog used for App About
 
@@ -422,11 +425,27 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
-				GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("Encerrar"));
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("Encerrar"));
+
+				if (flag_run_all) {
+					GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
+				}
+				else {
+					GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
+				}
 
 				//char bufff[24] = { 0 };
 				//reset_square_wave();
+
+				flag_fcc = true;
+
+				UpdateData(TRUE);
+				m_receive = "";
+				UpdateData(FALSE);
 
 				num_bursts = results.bursts;
 
@@ -602,6 +621,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 		stopped = false;
 		started = false;
 		if(!flag_run_all) m_SNPrompt.m_Serial_Number = "";
+		flag_fcc = false;
 
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
@@ -614,6 +634,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCC)->SetWindowText(_T("FCC"));
 		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 	}
 }
 
@@ -640,6 +664,21 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCS)->SetWindowText(_T("Encerrar"));
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+
+				if (flag_run_all) {
+					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
+				}
+				else {
+					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
+				}
+
+				UpdateData(TRUE);
+				m_receive = "";
+				UpdateData(FALSE);
+
 				/*
 				//Ajusta a escala do canal 1 (Vsd)
 				sprintf_s(temp, 256, ":CHANnel1:SCALe %.0e\n", fabs(m_FCSParametersDlg.m_Vsd) / 3);
@@ -695,6 +734,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				UpdateData(FALSE);
 				*/
 				//reset_square_wave();
+				flag_fcs = true;
 
 				num_bursts = results_fcs.bursts;
 
@@ -791,6 +831,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 		stopped = false;
 		started = false;
 		if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
+		flag_fcs = false;
 		
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
@@ -803,7 +844,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCS)->SetWindowText(_T("FCS"));
+		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 	}
 }
 
@@ -822,6 +867,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("Encerrar"));
 				/*
 				build_log_message("Configurando osciloscópio para FCP");
@@ -829,6 +877,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
+				flag_fcp = true;
+
 				num_bursts = results_fcp.bursts;
 
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
@@ -910,6 +960,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 						GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("FCP"));
 
 						return;
@@ -931,6 +984,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 					GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
 					GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
 					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 					GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("FCP"));
 
 					return;
@@ -1010,6 +1066,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 		stopped = false;
 		started = false;
 		m_SNPrompt.m_Serial_Number = "";
+		flag_fcp = false;
 
 		encerrarAquisicao();
 		for (int i = 0; i < m_numCanais; i++) {
@@ -1022,6 +1079,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("FCP"));
 	}
 }
@@ -1554,9 +1614,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 				reset_square_wave();
 				OnBnClickedButtonFcpAlt();
-				if (flag_run_all) {
-					flag_run_all = false;
-				}
 			}
 		/*}
 		else {
@@ -1879,7 +1936,7 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int 
 	delete[] sinal;
 }
 
-bool SendCommand(char _command[256], bool check_response_loop, char check_command[256], std::string expected_msg)
+bool SendCommand(std::string _command, bool check_response_loop, std::string check_command, std::string expected_msg)
 {
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
@@ -1891,6 +1948,7 @@ bool SendCommand(char _command[256], bool check_response_loop, char check_comman
 	char stringTemp_check[256];
 	char* stringTemp_ptr;
 	char* stringTemp_check_ptr;
+	unsigned int loop_count = 0;
 
 	ViChar buffer[VI_FIND_BUFLEN];
 	ViRsrc matches = buffer;
@@ -1903,43 +1961,66 @@ bool SendCommand(char _command[256], bool check_response_loop, char check_comman
 	viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
 
 	sleep_for(milliseconds(20));
-
-	command = _command;
+	
+	command = _command.c_str();
 	command += "\n";
+	/*
+	stringTemp_ptr = new char[static_cast<int>(_command.length())];
 
-	stringTemp_ptr = new char[command.GetLength()];
+	for (int i = 0; i < _command.length(); i++)
+		stringTemp_ptr[i] = _command[i];*/
 
 	for (int i = 0; i < command.GetLength(); i++)
-		stringTemp_ptr[i] = (char)command.GetAt(i);
+		stringTemp[i] = (char)command.GetAt(i);
 
-	viPrintf(vi, stringTemp_ptr);
+	viPrintf(vi, stringTemp);
 
 	sleep_for(milliseconds(20));
 	//Send the command received
 
 	if (check_response_loop) {
-		command = check_command;
+		command = check_command.c_str();;
 		command += "\n";
-
+		/*
 		stringTemp_check_ptr = new char[command.GetLength()];
 
 		for (int i = 0; i < command.GetLength(); i++)
-			stringTemp_check_ptr[i] = (char)command.GetAt(i);
+			stringTemp_check_ptr[i] = (char)command.GetAt(i);*/
 
-		viPrintf(vi, stringTemp_check_ptr);
+		for (int i = 0; i < command.GetLength(); i++)
+			stringTemp_check[i] = (char)command.GetAt(i);
+
+		viPrintf(vi, stringTemp_check);
 		sleep_for(milliseconds(20));
 		//Read the results
 		viScanf(vi, "%t\n", &buf);
 		sleep_for(milliseconds(20));
 
+
 		while (buf != expected_msg + "\n") {
-			viPrintf(vi, stringTemp_ptr);
+			viPrintf(vi, stringTemp);
 			sleep_for(milliseconds(20));
-			viPrintf(vi, stringTemp_check_ptr);
+			viPrintf(vi, stringTemp_check);
 			sleep_for(milliseconds(20));
 			//Read the results
 			viScanf(vi, "%t\n", &buf);
 			sleep_for(milliseconds(20));
+			loop_count++;
+			if (loop_count == COMM_LOOP_LIMIT) {
+				AfxMessageBox(_T("Erro: Problema de comunicação com o osciloscópio. Reconecte a USB."));
+				viClose(vi);
+				sleep_for(milliseconds(20));
+				viClose(defaultRM);
+				sleep_for(milliseconds(20));
+				viOpenDefaultRM(&defaultRM);
+				sleep_for(milliseconds(20));
+				//Acquire the USB resource of VISA
+				viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
+				sleep_for(milliseconds(20));
+				viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
+				sleep_for(milliseconds(20));
+				loop_count = 0;
+			}
 		}
 	}
 
@@ -2577,7 +2658,22 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+
 				GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("Encerrar"));
+
+				if (flag_run_all) {
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+				}
+				else {
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
+				}
+
+				flag_fcp = true;
+
+				UpdateData(TRUE);
+				m_receive = "";
+				UpdateData(FALSE);
 
 				num_bursts = results_fcp.bursts;
 
@@ -2662,8 +2758,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+						GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
-
+						GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+						if (flag_run_all) {
+							flag_fcp = false;
+							OnBnClickedButtonRunall();
+						}
 						return;
 					}
 				}
@@ -2684,8 +2785,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
 					GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
 					GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 					GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
-
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+					if (flag_run_all) {
+						flag_fcp = false;
+						OnBnClickedButtonRunall();
+					}
 					return;
 				}
 
@@ -2757,7 +2863,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 				vds_source.start(1);
 				vg_source.start(2);
 				sleep_for(milliseconds(100));
-				string_to_char_array(sys_commands.RUN, &buff[0]);
+				string_to_char_array(sys_commands.RUN+"\n", &buff[0]);
 				SendCommand(buff);
 
 				//Ativa o timer
@@ -2775,9 +2881,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		stopped = false;
 		started = false;
 		m_SNPrompt.m_Serial_Number = "";
+		flag_fcp = false;
 
 		char buff[10] = { 0 };
-		string_to_char_array(sys_commands.RUN, &buff[0]);
+		string_to_char_array(sys_commands.RUN+"\n", &buff[0]);
 		SendCommand(buff);
 		sleep_for(milliseconds(500));
 		results_fcp.AquireType = "HRES";
@@ -2796,15 +2903,49 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
+
+		if (flag_run_all) {
+			OnBnClickedButtonRunall();
+		}
 	}
 }
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 {
-	if (m_SNPrompt.DoModal() == IDOK) {
-		flag_run_all = true;
-		OnBnClickedButtonFCC(); 
+	if (!flag_run_all) {
+		if (m_SNPrompt.DoModal() == IDOK) {
+			GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+			GetDlgItem(IDC_BUTTON_RUNALL)->SetWindowText(_T("Encerrar"));
+
+			flag_run_all = true;
+			OnBnClickedButtonFCC();
+		}
+	}
+	else {
+		flag_run_all = false;
+		if (flag_fcc) OnBnClickedButtonFCC();
+		else if (flag_fcs) OnBnClickedButtonFCS();
+		else if (flag_fcp) OnBnClickedButtonFcpAlt();
+
+		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+		GetDlgItem(IDC_BUTTON_RUNALL)->SetWindowText(_T("Run All"));
 	}
 }
 

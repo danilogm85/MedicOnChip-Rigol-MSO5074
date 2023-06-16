@@ -21,6 +21,7 @@
 #define ID_TIMER_RESET		5
 #define BUCKET_SIZE_DEFAULT	500
 #define BUCKET_SIZE_FCP		10
+#define COMM_LOOP_LIMIT		10
 
 // CMedicOnChipRigolMSO5074Dlg dialog
 class CMedicOnChipRigolMSO5074Dlg : public CDialogEx
@@ -106,5 +107,5 @@ public:
 	afx_msg void OnBnClickedButtonRunall();
 };
 
-bool SendCommand(char command[256], bool check_response_loop = false, char check_command[256] = {0}, std::string expected_msg = "");
+bool SendCommand(std::string command, bool check_response_loop = false, std::string check_command = "", std::string expected_msg = "");
 std::string readOsciloscope(char command[256]);

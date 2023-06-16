@@ -9,6 +9,7 @@
 
 #define MIN "MIN"
 #define MAX "MAX"
+
 //#define NUM_MEDIAS 1
 /*
 const struct Waves{
@@ -19,8 +20,8 @@ const struct Waves{
 */
 const struct sys_commands {	
 	std::string STOP = ":STOP";
-	std::string RUN = ":RUN\n";
-	std::string SINGLE = ":SINGle \n";
+	std::string RUN = ":RUN";
+	std::string SINGLE = ":SINGle";
 	std::string TFORCE = ":TFORce";
 	std::string CLEAR = ":CLEar";
 	std::string MDEPTH = ":ACQuire:MDEPth 1M";
