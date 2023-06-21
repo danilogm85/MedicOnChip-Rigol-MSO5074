@@ -11,7 +11,15 @@ print("Calculando")
 
 config= configparser.ConfigParser()
 config.read("config.ini")
-gain_CURRENT=float(config.get('FCC','CURRENT_GAIN'))
+gain_CURRENT=float(config.get('FCC','G_TIA'))
+Cycles_config=int(config.get('FCC','CYCLES'))
+Freq_config=float(config.get('FCC','FREQ'))
+Max_Vds_expect_config=float(config.get('FCC','MAX_VDS_EXPECT'))
+Burst_config=int(config.get('FCC','BURSTS'))
+VG_config=int(config.get('FCC','BURSTS'))
+VDS_config=config.get('FCC','VDS_SPAN')
+Rlim=config.get('FCC','RG_LIMITS')
+
 
 #Lê o arquivo que contém o endereço atual de processamento
 adress = pd.read_csv("diretorio.csv",header=None)
@@ -55,6 +63,18 @@ for path, directories, files in os.walk(local):
             "VG":result["VG"].mean(),
             "Coef. Linear RES":b
         }
+        configuracoes={
+            "gain_CURRENT":gain_CURRENT,
+            "Cycles_config":Cycles_config,
+            "Freq_config":Freq_config,
+            "Max_Vds_expect_config":Max_Vds_expect_config,
+            "Burst_config":Burst_config,
+            "VG_config":VG_config,
+            "VDS_config":VDS_config,
+            "Rlim":Rlim
+        }
+        validacao=pd.DataFrame(configuracoes, index=[0])
+        validacao.to_csv(path_or_buf=path+ "\\configuracoes"+".csv", sep=";",index=False)
         data=pd.DataFrame(parametros)        
         #data.to_csv(path_or_buf=path+ "\\resistencia"+"_VG_"+str(result["VG"].mean()) + ".csv", sep=";",index=False)     
         data.to_csv(path_or_buf=path+ "\\resistencia"+".csv", sep=";",index=False)     
