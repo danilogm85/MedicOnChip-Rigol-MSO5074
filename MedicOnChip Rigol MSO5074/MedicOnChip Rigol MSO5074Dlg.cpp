@@ -1,6 +1,7 @@
 
 // MedicOnChip Rigol MSO5074Dlg.cpp : implementation file
 //
+D
 #include "pch.h"
 #include "framework.h"
 #include "MedicOnChip Rigol MSO5074.h"
@@ -16,7 +17,6 @@
 #include <time.h>
 #include <windows.h>
 #include <algorithm>
-#include <cmath>
 //#include <vector>
 #include <sstream>
 #define csv_columns 4
@@ -38,7 +38,7 @@ bool more_recent(vector<std::string> date, vector<std::string> ref);
 //void build_log_message(std::string msg);
 
 TestHandler tester;
-//bool started = false;
+bool started = false;
 bool stopped = false;
 unsigned int num_bursts;
 //bool force = false;
@@ -53,18 +53,18 @@ Trigger_parameters trigger_parameters;
 SourceChannel vds_source, vg_source;
 int burst_count = 0;
 int vg_index = 0;
+int Freq_Iterator = -1;
 CString database_path = CString("database/");
 std::string result_path = "";
+std::string FCPpath = "";
 vector <std::string> log_lines;
 bool flag_reset_waveform = true;
 bool flag_run_all = false;
 bool flag_fcc = false;
 bool flag_fcs = false;
 bool flag_fcp = false;
-bool flag_scale_set = false;
-bool flag_scale_set_status = false;
-float max_vds = -1000;
-float min_vds = 1000;
+bool new_fcp_flag = false;
+CString promptFCP = CString("");
 
 // CAboutDlg dialog used for App About
 
@@ -166,6 +166,7 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	//ON_BN_CLICKED(IDC_NEWFCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp)
 	ON_BN_CLICKED(IDC_BUTTON_FCP_Alt, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt)
 	ON_BN_CLICKED(IDC_BUTTON_RUNALL, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall)
+	ON_BN_CLICKED(NewFCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp)
 END_MESSAGE_MAP()
 
 
@@ -472,6 +473,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 
 				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/" + date_str.c_str() + "/";
 				result_path = CStringA(results_path);
+
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
@@ -622,8 +624,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 		vg_source.stop(2);
 		vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+		stopped = false;
+		started = false;
 		if(!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 		flag_fcc = false;
 
@@ -832,8 +834,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 		vg_source.stop(2);
 		vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+		stopped = false;
+		started = false;
 		if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 		flag_fcs = false;
 		
@@ -998,6 +1000,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 
 				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
 				result_path = CStringA(results_path);
+				if (Freq_Iterator == 0) {
+					FCPpath = result_path;
+				}
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
@@ -1067,8 +1072,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 		vg_source.stop(2);
 		//vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+		stopped = false;
+		started = false;
 		m_SNPrompt.m_Serial_Number = "";
 		flag_fcp = false;
 
@@ -1119,7 +1124,16 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
-	case ID_TIMER_FCC:
+	case ID_TIMER_FCC:/*
+		if (trg_status == "RUN\n") {
+			started = true;
+			stopped = false;
+		}
+		else if (started && (trg_status == "STOP\n")) {
+			started = false;
+			stopped = true;
+		}*/
+		
 		if (trg_status == "STOP\n") {
 
 			if (vg_index < results.vg_vector.size()) {
@@ -1237,8 +1251,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
 
-						//stopped = false;
-						//started = false;
+						stopped = false;
+						started = false;
 					}
 				}
 			}
@@ -1415,8 +1429,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);
 					*/
 					burst_count = 0;
-					//stopped = false;
-					//started = false;
+					stopped = false;
+					started = false;
 					//vg_index++;
 					//if (vg_index < results.vg_vector.size()) {
 					//	results.vg_source_params.v_offset = results.vg_vector[vg_index];
@@ -1490,16 +1504,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 		}*/
 
 		//if (trg_status == "STOP\n") {
-		if (flag_scale_set_status) {
-			string_to_char_array(sys_commands.STOP, &buff[0]);
-			SendCommand(buff);
-		}
-		else {
-			if (trg_status == "STOP\n") {
-				stopped = true;
-			}
-		}
-		if (stopped || flag_scale_set_status) {
+			
+		string_to_char_array(sys_commands.STOP, &buff[0]);
+		SendCommand(buff);
+
 			if (burst_count < num_bursts) {
 				/*
 				std::string msg = "Aquisição encerrada, BURST " + std::to_string(burst_count);
@@ -1510,38 +1518,66 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				*/
 				vds_source.stop(1);
 				vg_source.stop(2);
-				std::string path = result_path;
+				std::string path = FCPpath;
 				if (!fs::exists(path)) {/*
 					build_log_message("Criando diretórios");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);*/
 					fs::create_directories(path);
-				}
+				}/*
+				path += "/results" + std::to_string(burst_count) + ".csv";
+				myfile.open(path);
+				myfile << cabecalho << "\n";
 				/*
 				build_log_message("Lendo dados do canal");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 
+				Ts = vg_meas.get_sample_period(m_vi);
+				leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_FCP, "");
+				//leDadosCanal(current_meas.get_id());
+				leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_FCP, "");
+				tam_vg = m_pwndGraficoCanal[vg_meas.get_id() - 1].getTamVetorDeDados();
+				tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
 				/*
 				build_log_message("Escrevendo curvas nos arquivos");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
-				UpdateData(FALSE);*/
+				UpdateData(FALSE);
 
-				std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
-				path += "/results" + std::to_string(burst_count) + ".csv";
-				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
-				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path, results_fcp.vds_meas_params.offset);
-
-				if (flag_scale_set_status) {
-					burst_count++;
+				if (tam_vg >= tam_vds) {
+					tam_fcc = tam_vg;
 				}
 				else {
-					burst_count = num_bursts;
+					tam_fcc = tam_vds;
 				}
+				for (int i = 0; i < tam_fcc; i++) {
+					myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << "0" << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
+				}
+				myfile.close();*/
+				std::string raw_data_path = "";
+				switch (Freq_Iterator) {
+				case 0:
+					if (!fs::exists(path+"/FLOW")) {
+						fs::create_directories(path + "/FLOW");
+					}
+					raw_data_path = path + "/FLOW" + "/raw_data_FLOW" + std::to_string(burst_count) + ".dat";
+					path = path+ "/FLOW" + "/results_FLOW" + std::to_string(burst_count) + ".csv";
+					break;
+				case 1:
+					if (!fs::exists(path + "/FHIGH")) {
+						fs::create_directories(path + "/FHIGH");
+					}
+					raw_data_path = path + "/FHIGH"+ "/raw_data_FHIGH" + std::to_string(burst_count) + ".dat";
+					path = path + "/FHIGH"+"/results_FHIGH" + std::to_string(burst_count) + ".csv";
+					break;
+				}
+				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
+				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path);
 
+				burst_count++;
 				if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 				{/*
 					build_log_message("Preparando próxima aquisição");
@@ -1553,6 +1589,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					sleep_for(milliseconds(100));
 					string_to_char_array(sys_commands.SINGLE, &buff[0]);
 					SendCommand(buff);
+
 					//vds_source.start(1);
 				}
 			}
@@ -1561,10 +1598,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);*/
-				m_SNPrompt.m_Serial_Number = "";
+
 				burst_count = 0;
 				stopped = false;
-				//started = false;
+				started = false;
 				vds_source.stop(1);
 				vg_source.stop(2);
 				//vds_source.stop(1);
@@ -1574,48 +1611,42 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
-				if (!flag_scale_set_status) {
-					flag_scale_set_status = true;
-					flag_scale_set = false;
-					KillTimer(ID_TIMER_FCP);
-				}
-				else {
-					flag_scale_set_status = false;
-					std::ofstream myfile;
-					myfile.open("FCP.csv");
-					for (int i = 0; i < result_path.size(); i++) {
-						if (result_path[i] == '/') {
-							result_path[i] = '\\';
-						}
+				std::ofstream myfile;
+				myfile.open("FCP.csv");
+				for (int i = 0; i < result_path.size(); i++) {
+					if (result_path[i] == '/') {
+						result_path[i] = '\\';
 					}
-					myfile << result_path << "\n";
-					myfile.close();
-
-					system("python.exe FCP_Final.py");
-
-					//COLOCAR FUNÇÃO MÉDIA
-					UpdateData(TRUE);
-					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
-					UpdateData(FALSE);
-					reset_square_wave();
 				}
+				myfile << result_path << "\n";
+				myfile.close();
 
+				system("python.exe FCP_Final.py");
+
+				//COLOCAR FUNÇÃO MÉDIA
+				UpdateData(TRUE);
+				m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+				UpdateData(FALSE);
+
+				m_SNPrompt.m_Serial_Number = "";
 				/*
 				build_log_message("Fim do FCP");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);*/
 
+				reset_square_wave();
+				
 				OnBnClickedButtonFcpAlt();
+				
 			}
-			/*}
-			else {
-				build_log_message("Aquisição em progresso");
-				UpdateData(TRUE);
-				m_receive = tester.log_string.c_str();
-				UpdateData(FALSE);
-			}*/
-		}
+		/*}
+		else {
+			build_log_message("Aquisição em progresso");
+			UpdateData(TRUE);
+			m_receive = tester.log_string.c_str();
+			UpdateData(FALSE);
+		}*/
 		break;
 	/*case ID_TIMER_RESET:
 		//string_to_char_array(":SOURce1:FUNCtion RAMP\n", &buff2[0]);
@@ -1686,7 +1717,7 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 	return true;
 }
 
-void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path,std::string mean_path, float offset) {
+void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path,std::string mean_path) {
 	ViByte* buf;		//unsigned char
 	buf = new ViByte[1000000];
 	ViUInt32 cnt = 1000000;
@@ -1727,13 +1758,12 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	delete[] temp;
 
 	//Determina a resolução horizontal
-	//viPrintf(m_vi, ":WAVeform:XINCrement?\n");
-	viPrintf(m_vi, ":ACQuire:SRATe?\n");
+	viPrintf(m_vi, ":WAVeform:XINCrement?\n");
 	viRead(m_vi, buf, cnt, &readcnt);
 	temp = new char[readcnt];
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
-	Ts = 1/atof(temp);		//Período de amostragem
+	Ts = atof(temp);		//Período de amostragem
 	delete[] temp;
 
 	//Itera sobre cada canal
@@ -1776,36 +1806,23 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 			sinal_it = 0;
 			for (int i = 0; i < tam; i++) {
 
-				raw_signals[i][canal] = ((buf[2 + N + i] - 127) * deltaV) - offset;
-
+				raw_signals[i][canal] = (buf[2 + N + i] - 127) * deltaV;
 				if (!flag_time) {
 					raw_signals[i][0] = Ts*i;
 				}
-				
-				soma += ((buf[2 + N + i] - 127) * deltaV) - offset;
-				if (aux == bucket_size-1) {
+
+				soma += (buf[2 + N + i] - 127) * deltaV;
+				if (aux == bucket_size - 1) {
 					media = soma / bucket_size;
 					if (sinal_it < tam / bucket_size) {
 						mean_signals[sinal_it][canal] = media;
 						sinal[sinal_it] = media;
-
-						if (flag_scale_set && !flag_scale_set_status && canal == 1) {
-							if (sinal_it > 0.1*(tam / bucket_size) && sinal_it < 0.9 * (tam / bucket_size)) {	//Pega no meio do sinal para evitar outliers
-								if (sinal[sinal_it] > max_vds) {
-									max_vds = sinal[sinal_it];
-								}
-								if (sinal[sinal_it] < min_vds) {
-									min_vds = sinal[sinal_it];
-								}
-							}
-						}
-
 						if (!flag_time) {
 							mean_signals[sinal_it][0] = Ts * i;
 						}
 					}
 					sinal_it++;
-					aux = -1;	//O aux é incrementado logo que sai do if, então tem que colcoar -1 para ele zerar daqui 2 linhas
+					aux = 0;
 					soma = 0;
 				}
 				aux++;
@@ -1819,28 +1836,26 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	}
 	delete[] buf;
 
-	if (!flag_scale_set) {
-		//if (bucket_size == BUCKET_SIZE_FCP) {
+	if (bucket_size == BUCKET_SIZE_FCP) {
 		std::ofstream arquivo(raw_path, std::ios::binary);
 		for (const auto& linha : raw_signals) {
 			arquivo.write(reinterpret_cast<const char*>(linha.data()), linha.size() * sizeof(int));
 		}
 		arquivo.close();
-		//}
-
-		std::ofstream arquivo_mean(mean_path);
-		arquivo_mean << cabecalho << "\n";
-		for (const auto& linha : mean_signals) {
-			for (size_t i = 0; i < linha.size(); i++) {
-				arquivo_mean << linha[i];
-				if (i < linha.size() - 1) {
-					arquivo_mean << ";";
-				}
-			}
-			arquivo_mean << "\n";
-		}
-		arquivo_mean.close();
 	}
+
+	std::ofstream arquivo_mean(mean_path);
+	arquivo_mean << cabecalho << "\n";
+	for (const auto& linha : mean_signals) {
+		for (size_t i = 0; i < linha.size(); i++) {
+			arquivo_mean << linha[i];
+			if (i < linha.size() - 1) {
+				arquivo_mean << ";";
+			}
+		}
+		arquivo_mean << "\n";
+	}
+	arquivo_mean.close();
 }
 
 // Lê os dados do canal especificado e imprime no gráfico
@@ -2651,151 +2666,123 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 	//vg_index = vg_index;
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
-	bool aq_status = false;
-	char buff[10] = { 0 };
-	float delay_time = 1000;
-	results_fcp = tester.get_fcp_parameters();
 
 	if (!m_bAquisicaoAtiva)
 	{
 		int status_sn_prompt = 0;
-		if (!flag_run_all && !flag_scale_set_status) {
+		if (!flag_run_all && new_fcp_flag==false ) {
 			status_sn_prompt = m_SNPrompt.DoModal();
+			new_fcp_flag = true;
+			promptFCP = m_SNPrompt.m_Serial_Number;
 		}
-		if (status_sn_prompt == IDOK || flag_run_all || flag_scale_set_status)
+
+		if (status_sn_prompt == IDOK || flag_run_all|| new_fcp_flag)
 		{
-			if (!flag_scale_set_status) {
-				aq_status = iniciarAquisicao();
-				m_bAquisicaoAtiva = false;
-			}
-			else {
-				aq_status = true;
-				m_bAquisicaoAtiva = true;
-			}
-			if (aq_status) {
-				if (!flag_scale_set_status) {
+			if (iniciarAquisicao()) {
+				GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
 
-					GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(FALSE);
-					GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(FALSE);
-					GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(FALSE);
-					GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(FALSE);
-					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(FALSE);
-					GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(FALSE);
-					GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(FALSE);
+				GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("Encerrar"));
 
-					GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("Encerrar"));
+				if (flag_run_all) {
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+				}
+				else {
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
+				}
 
-					if (flag_run_all) {
-						GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(FALSE);
+				flag_fcp = true;
+
+				UpdateData(TRUE);
+				m_receive = "";
+				UpdateData(FALSE);
+
+				num_bursts = results_fcp.bursts;
+
+				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
+				time_t tt;
+				tt = std::chrono::system_clock::to_time_t(today);
+				char str[27] = { 0 };
+
+				ctime_s(str, sizeof str, &tt);
+				std::string date_str = "";
+
+				for (int i = 0; i < 20; i++) {
+					if (str[i + 4] == ' ' || str[i + 4] == ':') {
+						if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
 					}
 					else {
-						GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
+						date_str += str[i + 4];
 					}
+				}
 
-					flag_fcp = true;
-					flag_scale_set = true;
+				//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+				vector<string> splitted_values_aux;
+				vector<string> splitted_values_ref;
+				CString fcs_path ;//CString por causa do SN
+				//CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
+				if (Freq_Iterator!=0)
+				{
+					fcs_path.Append(database_path + promptFCP + "/FCS/");
+					m_SNPrompt.m_Serial_Number.~CStringT();
+					m_SNPrompt.m_Serial_Number.Append(promptFCP);
 
-					UpdateData(TRUE);
-					m_receive = "";
-					UpdateData(FALSE);
+				}
+				else
+				{
+					fcs_path.Append( database_path + m_SNPrompt.m_Serial_Number + "/FCS/");	//CString por causa do SN
+				}
+				std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+				std::filesystem::path caminho{ vg_values_path };
 
-					num_bursts = results_fcp.bursts;
+				if (fs::exists(vg_values_path)) {
+					//Encontrar o teste mais recente
+					std::string most_recent = "";
+					bool first = true;
+					for (auto& p : std::filesystem::recursive_directory_iterator(vg_values_path)) {
+						if (p.is_directory()) {
+							if (first) {
+								first = false;
+								most_recent = p.path().string();
+								splitted_values_ref = customSplit2(most_recent, '-');
 
-					std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
-					time_t tt;
-					tt = std::chrono::system_clock::to_time_t(today);
-					char str[27] = { 0 };
-
-					ctime_s(str, sizeof str, &tt);
-					std::string date_str = "";
-
-					for (int i = 0; i < 20; i++) {
-						if (str[i + 4] == ' ' || str[i + 4] == ':') {
-							if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
-						}
-						else {
-							date_str += str[i + 4];
-						}
-					}
-
-					//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
-					vector<string> splitted_values_aux;
-					vector<string> splitted_values_ref;
-					CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
-					std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
-					std::filesystem::path caminho{ vg_values_path };
-
-					if (fs::exists(vg_values_path)) {
-						//Encontrar o teste mais recente
-						std::string most_recent = "";
-						bool first = true;
-						for (auto& p : std::filesystem::recursive_directory_iterator(vg_values_path)) {
-							if (p.is_directory()) {
-								if (first) {
-									first = false;
+							}
+							else {
+								splitted_values_aux = customSplit2(p.path().string(), '-');
+								if (more_recent(splitted_values_aux, splitted_values_ref)) {
 									most_recent = p.path().string();
 									splitted_values_ref = customSplit2(most_recent, '-');
-
-								}
-								else {
-									splitted_values_aux = customSplit2(p.path().string(), '-');
-									if (more_recent(splitted_values_aux, splitted_values_ref)) {
-										most_recent = p.path().string();
-										splitted_values_ref = customSplit2(most_recent, '-');
-									}
 								}
 							}
 						}
+					}
 
-						vg_values_path = most_recent + "/vg_values.ini";
+					vg_values_path = most_recent + "/vg_values.ini";
 
-						//Verificar se no teste mais recente existem os valores de VG
-						if (fs::exists(vg_values_path)) {
+					//Verificar se no teste mais recente existem os valores de VG
+					if (fs::exists(vg_values_path)) {
 
-							mINI::INIFile file(vg_values_path);
-							mINI::INIStructure ini;
-							file.read(ini);
-							float min = stof(ini.get("VG").get("MIN"));
-							float max = stof(ini.get("VG").get("MAX"));
+						mINI::INIFile file(vg_values_path);
+						mINI::INIStructure ini;
+						file.read(ini);
+						float min = stof(ini.get("VG").get("MIN"));
+						float max = stof(ini.get("VG").get("MAX"));
 
-							results_fcp.vg_source_params.v_pp = max - min;
-							trigger_parameters.level = max - results_fcp.vg_source_params.v_pp / 2;
-							results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
-							results_fcp.vg_meas_params.volts_div = max / 4;
+						results_fcp.vg_source_params.v_pp = max - min;
+						trigger_parameters.level = max - results_fcp.vg_source_params.v_pp / 2;
+						results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
+						results_fcp.vg_meas_params.volts_div = max / 4;
 
-						}
-						else {
-							UpdateData(TRUE);
-							m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
-							UpdateData(FALSE);
-
-							encerrarAquisicao();
-							for (int i = 0; i < m_numCanais; i++) {
-								m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
-								m_pwndGraficoCanal[i].limpaGrafico();
-							}
-
-							GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
-							GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
-							if (flag_run_all) {
-								flag_fcp = false;
-								OnBnClickedButtonRunall();
-							}
-							return;
-						}
 					}
 					else {
 						UpdateData(TRUE);
-						m_receive = "Esse chip ainda não foi testado no FCS";
+						m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
 						UpdateData(FALSE);
 
 						encerrarAquisicao();
@@ -2803,6 +2790,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
 							m_pwndGraficoCanal[i].limpaGrafico();
 						}
+
 						GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
 						GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
@@ -2819,59 +2807,83 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						}
 						return;
 					}
-
-					CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
-					result_path = CStringA(results_path);
-					if (!fs::exists(result_path)) {
-						fs::create_directories(result_path);
-					}
-
-					//Mostra os gráficos
-					for (int i = 0; i < m_numCanais; i++)
-						m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
-
-					//Set time scale
-					tester.set_t_scale(results_fcp.t_scale);
-					//Set measurement channels
-					vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
-					current_meas.write_parameters_to_osc(results_fcp.current_meas_params);
-					vg_meas.write_parameters_to_osc(results_fcp.vg_meas_params);
-					//Set trigger
-					trigger_parameters.source = "CHAN3";
-					tester.send_trigger_parameters(trigger_parameters);
-					//tester.triggerMode_FCP();//qlq coisa vai nessa função e muda trigger para Normal
-					vds_source.write_parameters_to_osc(results_fcp.vds_source_params);
-					vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
-					
-					string_to_char_array(sys_commands.RUN, &buff[0]);
-					SendCommand(buff);
-
-				//Medida rápida para definir escala vertical
-					results_fcp.AquireType = "HRES";
-					tester.type_Aquire(results_fcp.AquireType);
-					delay_time = 1000;
 				}
 				else {
-					//set Acquire
-					//sleep_for(milliseconds(500));
-
-					results_fcp.vds_meas_params.offset = -(max_vds + min_vds)/2;
 					UpdateData(TRUE);
-					m_receive = (std::to_string(max_vds) + "," + std::to_string(min_vds)).c_str();
+					m_receive = "Esse chip ainda não foi testado no FCS";
 					UpdateData(FALSE);
-					results_fcp.vds_meas_params.volts_div = (max_vds)*1.1/8;
-					vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
 
-					string_to_char_array(sys_commands.RUN, &buff[0]);
-					SendCommand(buff);
-
-					results_fcp.AquireType = "AVER";
-					tester.type_Aquire(results_fcp.AquireType);
-					sleep_for(milliseconds(500));
-					tester.aquire_Numb_averages(results_fcp);
-					delay_time = 1000 * results_fcp.AquireAverages * results_fcp.vg_source_params.cycles / results_fcp.vg_source_params.freq;
-					delay_time = delay_time * 1.2;
+					encerrarAquisicao();
+					for (int i = 0; i < m_numCanais; i++) {
+						m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+						m_pwndGraficoCanal[i].limpaGrafico();
+					}
+					GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
+					GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+					if (flag_run_all) {
+						flag_fcp = false;
+						OnBnClickedButtonRunall();
+					}
+					return;
 				}
+
+				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
+				result_path = CStringA(results_path);
+				if (Freq_Iterator == 0) {
+					FCPpath = result_path;
+				}
+				if (!fs::exists(result_path)) {
+					fs::create_directories(result_path);
+				}
+
+				//Mostra os gráficos
+				for (int i = 0; i < m_numCanais; i++)
+					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
+
+				//Set time scale
+				//
+				switch (Freq_Iterator) {
+				case 0:
+					tester.set_t_scale(results_fcp.Low_t_scale);
+					results_fcp.vg_source_params.LOWfreq;
+				case 1:
+					tester.set_t_scale(results_fcp.High_t_scale);
+					results_fcp.vg_source_params.HIGHfreq;
+				}
+					
+				//Set measurement channels
+				vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
+				current_meas.write_parameters_to_osc(results_fcp.current_meas_params);
+				vg_meas.write_parameters_to_osc(results_fcp.vg_meas_params);
+				//Set trigger
+				trigger_parameters.source = "CHAN3";
+				tester.send_trigger_parameters(trigger_parameters);
+				//tester.triggerMode_FCP();//qlq coisa vai nessa função e muda trigger para Normal
+				vds_source.write_parameters_to_osc(results_fcp.vds_source_params);
+				vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
+
+
+				//set Acquire
+				char buff[10] = { 0 };
+				string_to_char_array(sys_commands.RUN, &buff[0]);
+				SendCommand(buff);
+				sleep_for(milliseconds(500));
+				results_fcp.AquireType = "AVER";
+				tester.type_Aquire(results_fcp.AquireType);
+				sleep_for(milliseconds(500));
+				tester.aquire_Numb_averages(results_fcp);
+				float delay_time = 1000*results_fcp.AquireAverages * results_fcp.vg_source_params.cycles/ results_fcp.vg_source_params.freq;
+				delay_time = delay_time * 1.2;
+
+				
 				/*
 				//Set High Res and 1M points
 				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
@@ -2901,16 +2913,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 
 				vds_source.start(1);
 				vg_source.start(2);
-				if (flag_scale_set_status) {
-					sleep_for(milliseconds(100));
-					string_to_char_array(sys_commands.RUN + "\n", &buff[0]);
-					SendCommand(buff);
-				}
-				else {
-					sleep_for(milliseconds(1000));
-					string_to_char_array(sys_commands.SINGLE + "\n", &buff[0]);
-					SendCommand(buff);
-				}
+				sleep_for(milliseconds(100));
+				string_to_char_array(sys_commands.RUN+"\n", &buff[0]);
+				SendCommand(buff);
 
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCP, delay_time, NULL);
@@ -2924,8 +2929,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		vg_source.stop(2);
 		//vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+		stopped = false;
+		started = false;
 		m_SNPrompt.m_Serial_Number = "";
 		flag_fcp = false;
 
@@ -2951,7 +2956,19 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
-		GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
+		GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
+
+		if (Freq_Iterator < 2) {
+			
+			OnBnClickedNewfcp();
+			
+		}
+		else {
+			Freq_Iterator = -1;
+			new_fcp_flag = false;
+			promptFCP = CString("");
+			FCPpath = "";
+		}
 
 		if (flag_run_all) {
 			OnBnClickedButtonRunall();
@@ -2993,4 +3010,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_RUNALL)->SetWindowText(_T("Run All"));
 	}
+}
+
+
+void CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp()
+{
+	Freq_Iterator++;
+	OnBnClickedButtonFcpAlt();
 }

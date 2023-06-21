@@ -41,7 +41,11 @@ struct SourceChannel_parameters{
 	std::string wave_type = "none";
 	unsigned int Id = 0;
 	float freq = 0;
+	float LOWfreq = 0;
+	float HIGHfreq = 0;
 	unsigned int cycles=0;	//Number of cycles of the burst
+	float LOW_CYCLES = 0;
+	float HIGH_CYCLES = 0;
 	std::string generatorType = "none";
 	std::string Burst_Type = "none";
 };
@@ -96,6 +100,8 @@ struct FCP_parameters {
 	//MeasurementChannel_parameters current_meas_params;
 	MeasurementChannel_parameters vg_meas_params;
 	float t_scale;
+	float Low_t_scale;
+	float High_t_scale;
 	unsigned int bursts = 1;
 	int AquireAverages = 2;
 	std::string AquireType = "AVER";
@@ -129,6 +135,8 @@ public:
 	//void save_fcc_in_csv(float vg, std::string data);		//ID 11
 	//void calculate_fcc_results();							//ID 12
 	std::string log_string = "";
+	std::string LOW_log_string = "";
+	std::string HIGH_log_string = "";
 };
 
 class MeasurementChannel : public TestHandler

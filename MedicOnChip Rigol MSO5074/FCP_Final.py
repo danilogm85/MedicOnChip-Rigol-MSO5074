@@ -16,7 +16,7 @@ medicao=pd.DataFrame()
 mean=0
 
 config= configparser.ConfigParser()
-config.read("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositorios\\MedicOnChip-Rigol-MSO5074\\MedicOnChip Rigol MSO5074\\config.ini")
+config.read("config.ini")
 gain_CURRENT=float(config.get('FCP','CURRENT_GAIN'))
 tensao_CURRENT=float(config.get('FCP','TENSAO_CORRENTE'))
 Freq_config=config.get('FCP','FREQ')
@@ -68,8 +68,6 @@ plt.legend()
 plt.savefig(path+"\\vds.png")
 
 fig, ax=plt.subplots()
-#ax.plot(SubidaResult.index, SubidaResult["VDS"]/corrente, color='blue', label="Subida")
-#ax.plot(DescidaResult.index, DescidaResult["VDS"]/corrente, color='red', label="Descida")
 ax.plot(medicao["time"], medicao["VDS"]/corrente, color='blue',label='Resistência')
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("RES (Ohms)")
@@ -100,5 +98,4 @@ log = "Salvando resultados em: " + path + "\\resistencia" + ".csv"
 print(log)
 data.to_csv(path_or_buf=local+ "\\vds_fcp" + ".csv", sep=";",index=False)
 Info_Teste_FCP.to_csv(path_or_buf=local+"\\INFO_CONFIG_FCP"+".csv",sep=";",index=False)
-#remover arquivo com os endereços dos dados FCP
 #os.remove("FCP.csv")

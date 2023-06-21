@@ -10,7 +10,7 @@ import configparser
 print("Calculando")
 
 config= configparser.ConfigParser()
-config.read("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositorios\\MedicOnChip-Rigol-MSO5074\\MedicOnChip Rigol MSO5074\\config.ini")
+config.read("config.ini")
 gain_CURRENT=float(config.get('FCC','G_TIA'))
 Cycles_config=int(config.get('FCC','CYCLES'))
 Freq_config=float(config.get('FCC','FREQ'))

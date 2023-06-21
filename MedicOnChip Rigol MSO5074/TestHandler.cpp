@@ -225,10 +225,18 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
     parameters.vg_source_params.cycles = stoul(ini.get("FCP").get("CYCLES"));
+    parameters.vg_source_params.LOW_CYCLES = stoul(ini.get("FCP").get("LOW_CYCLES"));
+    parameters.vg_source_params.HIGH_CYCLES = stoul(ini.get("FCP").get("HIGH_CYCLES"));
     parameters.vg_source_params.freq = stof(ini.get("FCP").get("FREQ"));
+    parameters.vg_source_params.LOWfreq = stof(ini.get("FCP").get("FLOW"));
+    parameters.vg_source_params.HIGHfreq = stof(ini.get("FCP").get("FHIGH"));
     parameters.t_scale = float(parameters.vg_source_params.cycles) / (float(parameters.vg_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
+    parameters.Low_t_scale= float(parameters.vg_source_params.LOW_CYCLES) / (float(parameters.vg_source_params.LOWfreq) * 10);
+    parameters.High_t_scale = float(parameters.vg_source_params.HIGH_CYCLES) / (float(parameters.vg_source_params.HIGHfreq) * 10);
     parameters.AquireAverages= stoul(ini.get("FCP").get("ACQUIRE_AVG"));
     log_string = to_string(parameters.t_scale);
+    LOW_log_string = to_string(parameters.Low_t_scale);
+    HIGH_log_string= to_string(parameters.High_t_scale);
 
     //Read transimpedance amp gain and voltage drop
     //parameters.g_tia = stof(ini.get("FCS").get("G_TIA"));
@@ -247,7 +255,6 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     parameters.vds_source_params.v_pp = 0;
     parameters.vds_source_params.v_offset = stof(ini.get("FCP").get("CURR_SOURCE_BIAS"));
     parameters.current_meas_params.volts_div = parameters.vds_source_params.v_offset/2; //8 divisions
-
     return parameters;
 }
 

@@ -30,7 +30,27 @@ void SN_PROMPT::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(SN_PROMPT, CDialogEx)
+	ON_EN_CHANGE(IDC_EDIT_SN, &SN_PROMPT::OnEnChangeEditSn)
+	ON_BN_CLICKED(IDOK, &SN_PROMPT::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
 // manipuladores de mensagens de SN_PROMPT
+
+
+void SN_PROMPT::OnEnChangeEditSn()
+{
+	// TODO:  If this is a RICHEDIT control, the control will not
+	// send this notification unless you override the CDialogEx::OnInitDialog()
+	// function and call CRichEditCtrl().SetEventMask()
+	// with the ENM_CHANGE flag ORed into the mask.
+
+	// TODO:  Add your control notification handler code here
+}
+
+
+void SN_PROMPT::OnBnClickedOk()
+{
+	// TODO: Add your control notification handler code here
+	CDialogEx::OnOK();
+}

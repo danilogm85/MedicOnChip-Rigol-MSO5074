@@ -23,4 +23,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_Serial_Number;
+	afx_msg void OnEnChangeEditSn();
+	afx_msg void OnBnClickedOk();
 };
