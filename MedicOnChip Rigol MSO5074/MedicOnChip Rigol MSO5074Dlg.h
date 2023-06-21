@@ -20,7 +20,7 @@
 #define ID_TIMER_FCP		4
 #define ID_TIMER_RESET		5
 #define BUCKET_SIZE_DEFAULT	500
-#define BUCKET_SIZE_FCP		10
+#define BUCKET_SIZE_FCP		5
 #define COMM_LOOP_LIMIT		10
 
 // CMedicOnChipRigolMSO5074Dlg dialog
@@ -82,7 +82,7 @@ protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int, unsigned int bucket_size, std::string bin_file_path);
-	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path);
+	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path, float offset = 0);
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
