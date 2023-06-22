@@ -17,7 +17,6 @@
 #include <windows.h>
 #include <algorithm>
 #include <cmath>
-//#include <vector>
 #include <sstream>
 #define csv_columns 4
 #define cabecalho "t;vds;corrente;vg"
@@ -65,7 +64,7 @@ bool flag_scale_set = false;
 bool flag_scale_set_status = false;
 float max_vds = -1000;
 float min_vds = 1000;
-int Freq_Iterator = -1;
+int Freq_Iterator = 0;
 std::string FCPpath = "";
 bool new_fcp_flag = false;
 CString promptFCP = CString("");
@@ -1587,6 +1586,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					SendCommand(buff);
 					//vds_source.start(1);
 				}
+				else {
+					KillTimer(ID_TIMER_FCP);
+					SetTimer(ID_TIMER_FCP, 200, NULL);
+				}
 			}
 			else {/*
 				build_log_message("Aquisições finalizadas, desligando canais");
@@ -2687,7 +2690,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 	bool aq_status = false;
 	char buff[10] = { 0 };
 	float delay_time = 1000;
-	results_fcp = tester.get_fcp_parameters();
 
 	if (!m_bAquisicaoAtiva)
 	{
@@ -2728,6 +2730,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
 					}
 
+					if (Freq_Iterator == 0) {
+						results_fcp = tester.get_fcp_parameters();
+					}
+
 					flag_fcp = true;
 					flag_scale_set = true;
 
@@ -2737,85 +2743,116 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 
 					num_bursts = results_fcp.bursts;
 
-					std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
-					time_t tt;
-					tt = std::chrono::system_clock::to_time_t(today);
-					char str[27] = { 0 };
+					if (Freq_Iterator == 0) {	//P/ multiplas frequencia
+						std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
+						time_t tt;
+						tt = std::chrono::system_clock::to_time_t(today);
+						char str[27] = { 0 };
 
-					ctime_s(str, sizeof str, &tt);
-					std::string date_str = "";
+						ctime_s(str, sizeof str, &tt);
+						std::string date_str = "";
 
-					for (int i = 0; i < 20; i++) {
-						if (str[i + 4] == ' ' || str[i + 4] == ':') {
-							if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
-						}
-						else {
-							date_str += str[i + 4];
-						}
-					}
-
-					//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
-					vector<string> splitted_values_aux;
-					vector<string> splitted_values_ref;
-					//CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
-					CString fcs_path;
-					if (Freq_Iterator != 0)
-					{
-						fcs_path.Append(database_path + promptFCP + "/FCS/");
-						m_SNPrompt.m_Serial_Number.~CStringT();
-						m_SNPrompt.m_Serial_Number.Append(promptFCP);
-
-					}
-					else
-					{
-						fcs_path.Append(database_path + m_SNPrompt.m_Serial_Number + "/FCS/");	//CString por causa do SN
-					}
-					
-					std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
-					std::filesystem::path caminho{ vg_values_path };
-
-					if (fs::exists(vg_values_path)) {
-						//Encontrar o teste mais recente
-						std::string most_recent = "";
-						bool first = true;
-						for (auto& p : std::filesystem::recursive_directory_iterator(vg_values_path)) {
-							if (p.is_directory()) {
-								if (first) {
-									first = false;
-									most_recent = p.path().string();
-									splitted_values_ref = customSplit2(most_recent, '-');
-
-								}
-								else {
-									splitted_values_aux = customSplit2(p.path().string(), '-');
-									if (more_recent(splitted_values_aux, splitted_values_ref)) {
-										most_recent = p.path().string();
-										splitted_values_ref = customSplit2(most_recent, '-');
-									}
-								}
+						for (int i = 0; i < 20; i++) {
+							if (str[i + 4] == ' ' || str[i + 4] == ':') {
+								if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
+							}
+							else {
+								date_str += str[i + 4];
 							}
 						}
 
-						vg_values_path = most_recent + "/vg_values.ini";
+						//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+						vector<string> splitted_values_aux;
+						vector<string> splitted_values_ref;
+						CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
+						
+						/*
+						CString fcs_path;
+						if (Freq_Iterator != 0)
+						{
+							fcs_path.Append(database_path + promptFCP + "/FCS/");
+							m_SNPrompt.m_Serial_Number.~CStringT();
+							m_SNPrompt.m_Serial_Number.Append(promptFCP);
 
-						//Verificar se no teste mais recente existem os valores de VG
+						}
+						else
+						{
+							fcs_path.Append(database_path + m_SNPrompt.m_Serial_Number + "/FCS/");	//CString por causa do SN
+						}*/
+					
+						std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+						std::filesystem::path caminho{ vg_values_path };
+
 						if (fs::exists(vg_values_path)) {
+							//Encontrar o teste mais recente
+							std::string most_recent = "";
+							bool first = true;
+							for (auto& p : std::filesystem::recursive_directory_iterator(vg_values_path)) {
+								if (p.is_directory()) {
+									if (first) {
+										first = false;
+										most_recent = p.path().string();
+										splitted_values_ref = customSplit2(most_recent, '-');
 
-							mINI::INIFile file(vg_values_path);
-							mINI::INIStructure ini;
-							file.read(ini);
-							float min = stof(ini.get("VG").get("MIN"));
-							float max = stof(ini.get("VG").get("MAX"));
+									}
+									else {
+										splitted_values_aux = customSplit2(p.path().string(), '-');
+										if (more_recent(splitted_values_aux, splitted_values_ref)) {
+											most_recent = p.path().string();
+											splitted_values_ref = customSplit2(most_recent, '-');
+										}
+									}
+								}
+							}
 
-							results_fcp.vg_source_params.v_pp = max - min;
-							trigger_parameters.level = max - results_fcp.vg_source_params.v_pp / 2;
-							results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
-							results_fcp.vg_meas_params.volts_div = max / 4;
+							vg_values_path = most_recent + "/vg_values.ini";
 
+							//Verificar se no teste mais recente existem os valores de VG
+							if (fs::exists(vg_values_path)) {
+
+								mINI::INIFile file(vg_values_path);
+								mINI::INIStructure ini;
+								file.read(ini);
+								float min = stof(ini.get("VG").get("MIN"));
+								float max = stof(ini.get("VG").get("MAX"));
+
+								results_fcp.vg_source_params.v_pp = max - min;
+								trigger_parameters.level = max - results_fcp.vg_source_params.v_pp / 2;
+								results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
+								results_fcp.vg_meas_params.volts_div = max / 4;
+
+							}
+							else {
+								UpdateData(TRUE);
+								m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
+								UpdateData(FALSE);
+
+								encerrarAquisicao();
+								for (int i = 0; i < m_numCanais; i++) {
+									m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+									m_pwndGraficoCanal[i].limpaGrafico();
+								}
+
+								GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
+								GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
+								GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+								if (flag_run_all) {
+									flag_fcp = false;
+									OnBnClickedButtonRunall();
+								}
+								return;
+							}
 						}
 						else {
 							UpdateData(TRUE);
-							m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
+							m_receive = "Esse chip ainda não foi testado no FCS";
 							UpdateData(FALSE);
 
 							encerrarAquisicao();
@@ -2823,7 +2860,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 								m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
 								m_pwndGraficoCanal[i].limpaGrafico();
 							}
-
 							GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 							GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
 							GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
@@ -2840,45 +2876,16 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							}
 							return;
 						}
-					}
-					else {
-						UpdateData(TRUE);
-						m_receive = "Esse chip ainda não foi testado no FCS";
-						UpdateData(FALSE);
 
-						encerrarAquisicao();
-						for (int i = 0; i < m_numCanais; i++) {
-							m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
-							m_pwndGraficoCanal[i].limpaGrafico();
-						}
-						GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
-						GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
-						GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
-						if (flag_run_all) {
-							flag_fcp = false;
-							OnBnClickedButtonRunall();
-						}
-						return;
-					}
+						CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
+						result_path = CStringA(results_path);
 
-					CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
-					result_path = CStringA(results_path);
-
-					if (Freq_Iterator == 0) {	//P/ multiplas frequencia
 						FCPpath = result_path;
-					}
 
-					if (!fs::exists(result_path)) {
-						fs::create_directories(result_path);
+						if (!fs::exists(result_path)) {
+							fs::create_directories(result_path);
+						}
 					}
-
 					//Mostra os gráficos
 					for (int i = 0; i < m_numCanais; i++)
 						m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
@@ -2888,11 +2895,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					switch (Freq_Iterator) {
 					case 0:
 						tester.set_t_scale(results_fcp.Low_t_scale);
-						results_fcp.vg_source_params.LOWfreq;
+						results_fcp.vg_source_params.freq = results_fcp.vg_source_params.LOWfreq;
 						break;
 					case 1:
 						tester.set_t_scale(results_fcp.High_t_scale);
-						results_fcp.vg_source_params.HIGHfreq;
+						results_fcp.vg_source_params.freq = results_fcp.vg_source_params.HIGHfreq;
 						break;
 					default:
 						tester.set_t_scale(results_fcp.t_scale);
@@ -2973,7 +2980,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					SendCommand(buff);
 				}
 				else {
-					sleep_for(milliseconds(1000));
+					sleep_for(milliseconds(3000));
 					string_to_char_array(sys_commands.SINGLE + "\n", &buff[0]);
 					SendCommand(buff);
 				}
@@ -3019,13 +3026,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
 
-		if (Freq_Iterator < 2) {
-
+		if (Freq_Iterator < 1) {
+			Freq_Iterator++;
 			OnBnClickedNewfcp();
 
 		}
 		else {
-			Freq_Iterator = -1;
+			Freq_Iterator = 0;
 			new_fcp_flag = false;
 			promptFCP = CString("");
 			FCPpath = "";
@@ -3075,6 +3082,5 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp()
 {
-	Freq_Iterator++;
 	OnBnClickedButtonFcpAlt();
 }

@@ -82,7 +82,7 @@ protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int, unsigned int bucket_size, std::string bin_file_path);
-	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path);
+	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path, float offset=0);
 
 public:
 	afx_msg void OnBnClickedButtonFCC();
