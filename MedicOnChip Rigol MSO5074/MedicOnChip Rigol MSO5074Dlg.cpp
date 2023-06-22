@@ -450,6 +450,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//reset_square_wave();
 
 				flag_fcc = true;
+				flag_scale_set = false;
 
 				UpdateData(TRUE);
 				m_receive = "";
@@ -743,6 +744,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				*/
 				//reset_square_wave();
 				flag_fcs = true;
+				flag_scale_set = false;
 
 				num_bursts = results_fcs.bursts;
 
@@ -1546,18 +1548,20 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				std::string raw_data_path = "";
 				switch (Freq_Iterator) {
 					case 0:
-						if (!fs::exists(path + "/FLOW")) {
-							fs::create_directories(path + "/FLOW");
+						result_path = path + "/FLOW";
+						if (!fs::exists(result_path)) {
+							fs::create_directories(result_path);
 						}
-						raw_data_path = path + "/FLOW" + "/raw_data_FLOW" + std::to_string(burst_count) + ".dat";
-						path = path + "/FLOW" + "/results_FLOW" + std::to_string(burst_count) + ".csv";
+						raw_data_path = result_path + "/raw_data_FLOW" + std::to_string(burst_count) + ".dat";
+						path = result_path + "/results_FLOW" + std::to_string(burst_count) + ".csv";
 						break;
 					case 1:
-						if (!fs::exists(path + "/FHIGH")) {
-							fs::create_directories(path + "/FHIGH");
+						result_path = path + "/FHIGH";
+						if (!fs::exists(result_path)) {
+							fs::create_directories(result_path);
 						}
-						raw_data_path = path + "/FHIGH" + "/raw_data_FHIGH" + std::to_string(burst_count) + ".dat";
-						path = path + "/FHIGH" + "/results_FHIGH" + std::to_string(burst_count) + ".csv";
+						raw_data_path = result_path + "/raw_data_FHIGH" + std::to_string(burst_count) + ".dat";
+						path = result_path + "/results_FHIGH" + std::to_string(burst_count) + ".csv";
 						break;
 					default:
 						break;
@@ -1847,7 +1851,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 				aux++;
 			}
 
-			m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
+			m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, (127 * deltaV) - offset);
 			m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam / bucket_size);
 			delete[] sinal;
 			flag_time = true;
@@ -2696,7 +2700,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		int status_sn_prompt = 0;
 		if (!flag_run_all && !flag_scale_set_status && !new_fcp_flag) {
 			status_sn_prompt = m_SNPrompt.DoModal();
-			new_fcp_flag = true;
+			if (status_sn_prompt == IDOK) {
+				new_fcp_flag = true;
+			}
 			promptFCP = m_SNPrompt.m_Serial_Number;
 		}
 		if (status_sn_prompt == IDOK || flag_run_all || flag_scale_set_status || new_fcp_flag)
@@ -2943,7 +2949,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					sleep_for(milliseconds(500));
 					tester.aquire_Numb_averages(results_fcp);
 					delay_time = 1000 * results_fcp.AquireAverages * results_fcp.vg_source_params.cycles / results_fcp.vg_source_params.freq;
-					delay_time = delay_time * 1.2;
+					if (Freq_Iterator == 0) {
+						delay_time = delay_time * 1.2;
+					}
+					else {
+						delay_time = delay_time * 5;
+					}
 				}
 				/*
 				//Set High Res and 1M points
@@ -3000,7 +3011,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		//stopped = false;
 		//started = false;
 		m_SNPrompt.m_Serial_Number = "";
-		flag_fcp = false;
+		//flag_fcp = false;
 
 		char buff[10] = { 0 };
 		string_to_char_array(sys_commands.RUN+"\n", &buff[0]);
@@ -3036,6 +3047,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 			new_fcp_flag = false;
 			promptFCP = CString("");
 			FCPpath = "";
+			flag_fcp = false;
 		}
 
 		if (flag_run_all) {
