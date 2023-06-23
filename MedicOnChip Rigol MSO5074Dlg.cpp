@@ -480,7 +480,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
-				
+				CopyConfig();
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
@@ -776,7 +776,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
-
+				CopyConfig();
 				//Mostra os gráficos
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
@@ -1560,10 +1560,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				std::string raw_data_path = "";
 				switch (Freq_Iterator) {
 					case 0:
-						result_path = path + "/FLOW/";
+						result_path = path + "FLOW/";
 						break;
 					case 1:
-						result_path = path + "/FHIGH/";
+						result_path = path + "FHIGH/";
 						break;
 					default:
 						break;
@@ -2906,14 +2906,19 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							return;
 						}
 
-						CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
+						CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str() + "/";
 						result_path = CStringA(results_path);
-
+						
 						FCPpath = result_path;
 
 						if (!fs::exists(result_path)) {
 							fs::create_directories(result_path);
 						}
+
+						CopyConfig();
+						std::ifstream inputFile(vg_values_path, std::ios::binary); // Abre o arquivo de origem em modo binário
+						std::ofstream outputFile(result_path + "vg_values.ini", std::ios::binary); // Abre o arquivo de destino em modo binário
+						outputFile << inputFile.rdbuf(); // Copia o conteúdo do arquivo de origem para o arquivo de destino
 					}
 					//Mostra os gráficos
 					for (int i = 0; i < m_numCanais; i++)
@@ -3125,4 +3130,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp()
 {
 	OnBnClickedButtonFcpAlt();
+}
+
+void CMedicOnChipRigolMSO5074Dlg::CopyConfig()
+{
+	std::ifstream inputFile("config.ini", std::ios::binary); // Abre o arquivo de origem em modo binário
+	std::ofstream outputFile(result_path+"config.ini", std::ios::binary); // Abre o arquivo de destino em modo binário
+	outputFile << inputFile.rdbuf(); // Copia o conteúdo do arquivo de origem para o arquivo de destino
+	return;
 }
