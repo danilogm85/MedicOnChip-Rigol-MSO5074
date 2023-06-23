@@ -10,9 +10,7 @@
 #include "FCSParametersDlg.h"
 #include "SN_PROMPT.h"
 #include "mini/ini.h"
-//#include "TestHandler.h"
 #include <string>
-//#define MAX_CANAIS			4
 
 #define ID_TIMER_ADQUIRIR	1
 #define ID_TIMER_FCC		2
@@ -87,22 +85,11 @@ protected:
 public:
 	afx_msg void OnBnClickedButtonFCC();
 	afx_msg void OnBnClickedButtonFCS();
-	/*
-	afx_msg void OnBnClickedButton1();
-	afx_msg void OnBnClickedButton2();
-	afx_msg void OnBnClickedButton3();
-	afx_msg void OnBnClickedButton4();
-	afx_msg void OnBnClickedButton5();
-	afx_msg void OnBnClickedButton6();
-	afx_msg void OnBnClickedButton7();
-	afx_msg void OnBnClickedButton8();*/
 
 	CString m_results_display;
-	afx_msg void OnBnClickedButton9();
 	afx_msg void OnBnClickedButtonFcp();
 	void CMedicOnChipRigolMSO5074Dlg::reset_square_wave();
 	afx_msg void OnBnClickedButtonFcsAlt();
-	//afx_msg void OnBnClickedNewfcp();
 	afx_msg void OnBnClickedButtonFcpAlt();
 	afx_msg void OnBnClickedButtonRunall();
 	afx_msg void OnBnClickedNewfcp();

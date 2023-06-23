@@ -10,14 +10,6 @@
 #define MIN "MIN"
 #define MAX "MAX"
 
-//#define NUM_MEDIAS 1
-/*
-const struct Waves{
-	std::string RAMP = "RAMP";
-	std::string SQUARE = "SQUARE";
-	std::string DC = "DC";
-} waves;
-*/
 const struct sys_commands {	
 	std::string STOP = ":STOP";
 	std::string RUN = ":RUN";
@@ -94,12 +86,10 @@ struct FCS_parameters {
 };
 
 struct FCP_parameters {
-	//SourceChannel_parameters vds_source_params;
 	SourceChannel_parameters vg_source_params;
 	SourceChannel_parameters vds_source_params;
 	MeasurementChannel_parameters current_meas_params;
 	MeasurementChannel_parameters vds_meas_params;
-	//MeasurementChannel_parameters current_meas_params;
 	MeasurementChannel_parameters vg_meas_params;
 	float t_scale;
 	float Low_t_scale;
@@ -107,11 +97,6 @@ struct FCP_parameters {
 	unsigned int bursts = 1;
 	int AquireAverages = 2;
 	std::string AquireType = "AVER";
-	//float g_tia;
-	//float v_tia;
-	//std::map<std::string, float> rg_limits;
-	//std::vector<float> vg_vector;
-	//float flat_region_width;
 };
 
 class TestHandler
@@ -133,9 +118,6 @@ public:
 	FCS_parameters get_fcs_parameters();				
 	FCP_parameters get_fcp_parameters();
 	bool set_osc_to_fcc(FCC_parameters parameters);					//ID 9
-	//bool start_fcc();										//ID 10
-	//void save_fcc_in_csv(float vg, std::string data);		//ID 11
-	//void calculate_fcc_results();							//ID 12
 	std::string log_string = "";
 	std::string LOW_log_string = "";
 	std::string HIGH_log_string = "";
@@ -177,7 +159,6 @@ public:
 	void Burst_Cycles_write_to_osc(SourceChannel_parameters parameters);
 	bool start(int Source_ID);											//ID 22
 	bool stop(int Source_ID);											//ID 23
-	//bool burst(int Source_ID);
 };
 
 void string_to_char_array(std::string str, char* buffer);

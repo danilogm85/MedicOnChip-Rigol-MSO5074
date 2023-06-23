@@ -34,13 +34,10 @@ namespace fs = std::filesystem;
 
 vector <string> customSplit2(string str, char separator);
 bool more_recent(vector<std::string> date, vector<std::string> ref);
-//void build_log_message(std::string msg);
 
 TestHandler tester;
-//bool started = false;
 bool stopped = false;
 unsigned int num_bursts;
-//bool force = false;
 FCC_parameters results = tester.get_fcc_parameters();
 FCS_parameters results_fcs = tester.get_fcs_parameters();
 FCP_parameters results_fcp = tester.get_fcp_parameters();
@@ -113,16 +110,14 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	m_pwndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
-
+	/*
 	char buff[20] = { 0 };
 
 	//Set High Res and 1M points
 	string_to_char_array(sys_commands.RUN, &buff[0]);
 	SendCommand(buff);
 	string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-	SendCommand(buff, true, ":ACQuire:MDEPth?", "1.0000E+06");
-	//string_to_char_array(sys_commands.HRES, &buff[0]);
-	//SendCommand(buff);
+	SendCommand(buff, true, ":ACQuire:MDEPth?", "1.0000E+06");*/
 }
 
 
@@ -153,20 +148,9 @@ BEGIN_MESSAGE_MAP(CMedicOnChipRigolMSO5074Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_ADQUIRIR, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_FCC, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC)
-	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)/*
-	ON_BN_CLICKED(IDC_BUTTON1, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1)
-	ON_BN_CLICKED(IDC_BUTTON2, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton2)
-	ON_BN_CLICKED(IDC_BUTTON3, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton3)
-	ON_BN_CLICKED(IDC_BUTTON4, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton4)
-	ON_BN_CLICKED(IDC_BUTTON5, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton5)
-	ON_BN_CLICKED(IDC_BUTTON6, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton6)
-	ON_BN_CLICKED(IDC_BUTTON7, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton7)
-	ON_BN_CLICKED(IDC_BUTTON8, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8)*/
-	ON_BN_CLICKED(IDC_BUTTON9, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9)
+	ON_BN_CLICKED(IDC_BUTTON_FCS, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS)
 	ON_BN_CLICKED(IDC_BUTTON_FCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp)
-	//ON_BN_CLICKED(IDC_BUTTON10, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton10)
 	ON_BN_CLICKED(IDC_BUTTON_FCS_ALT, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt)
-	//ON_BN_CLICKED(IDC_NEWFCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp)
 	ON_BN_CLICKED(IDC_BUTTON_FCP_Alt, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt)
 	ON_BN_CLICKED(IDC_BUTTON_RUNALL, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall)
 	ON_BN_CLICKED(NewFCP, &CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp)
@@ -446,8 +430,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 					GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
 				}
 
-				//char bufff[24] = { 0 };
-				//reset_square_wave();
+				results = tester.get_fcc_parameters();
 
 				flag_fcc = true;
 				flag_scale_set = false;
@@ -484,14 +467,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
-
-
-				//Debugging:
-				//std::string parameters_log;
-				//parameters_log = "Parametros do FCC:\n";
-				//parameters_log = parameters_log + "Canal 1 (Vds) - Tipo: " + results.vds_source_params.wave_type;
-				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.v_pp) + "Vpp, Offset de " + std::to_string(results.vds_source_params.v_offset);
-				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.freq) + " Hz";
 				/*
 				build_log_message("Configurando osciloscópio para FCC");
 				UpdateData(TRUE);
@@ -528,15 +503,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				SendCommand(buff);
 				sleep_for(milliseconds(500));
 				tester.type_Aquire(results.AquireType);
-				/*
-				//Set High Res and 1M points
-				string_to_char_array(sys_commands.RUN, &buff[0]);
-				SendCommand(buff);
-				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-				SendCommand(buff);
-				string_to_char_array(sys_commands.HRES, &buff[0]);
-				SendCommand(buff);
-				*/
+
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
 				SendCommand(buff);
@@ -559,63 +526,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				sleep_for(milliseconds(1000));
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
 
-
-				/*Isso não funciona porque o loop de tempo indeterminado trava a interface.Vamos ter que fazer por TIMER
-				while (tester.read_trigger_status() != "RUN") {
-					UpdateData(TRUE);
-					m_receive = "espera";
-					UpdateData(FALSE);
-				}
-
-				while (tester.read_trigger_status() != "STOP") {
-					UpdateData(TRUE);
-					m_receive = "espera2";
-					UpdateData(FALSE);
-				}
-
-				UpdateData(TRUE);
-				m_receive = "foi";
-				UpdateData(FALSE);*/
-				
-				//
-				//eDatatoCSV();
-
-				//UpdateData(TRUE);
-				//m_receive = tester.log_string.c_str();
-				//UpdateData(FALSE);
-/*
-				//Ajusta as escalas dos canais 1 e 2
-				viPrintf(m_vi, ":CHANnel1:SCALe 200E-3\n");
-				viPrintf(m_vi, ":CHANnel1:POSition 0\n");
-
-				viPrintf(m_vi, ":CHANnel2:SCALe 50e-3\n");
-				viPrintf(m_vi, ":CHANnel2:POSition 0\n");
-
-				//Ajusta a base de tempo horizontal
-				viPrintf(m_vi, ":TIMEbase:SCALe 200E-3\n");
-
-				//Ajusta a saída do gerador de sinais 1
-				//viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
-				viPrintf(m_vi, ":SOURce1:FUNCtion RAMP\n");
-				viPrintf(m_vi, ":SOURce1:FUNCtion:RAMP:SYMMetry 50\n");
-				viPrintf(m_vi, ":SOURce1:VOLTage 800E-3\n");
-				viPrintf(m_vi, ":SOURce1:VOLTage:OFFSet 300E-3\n");
-				viPrintf(m_vi, ":SOURce1:FREQuency 2\n");
-				viPrintf(m_vi, ":OUTPut1:IMPedance OMEG\n");
-				
-				//Ajusta a saída do gerador de sinais 2
-				viPrintf(m_vi, ":SOURce2:TYPE NONE\n");
-				viPrintf(m_vi, ":SOURce2:FUNCtion DC\n");
-				viPrintf(m_vi, ":SOURce2:VOLTage:OFFSet 100E-3\n");
-				viPrintf(m_vi, ":OUTPut2:IMPedance OMEG\n");
-
-				//Liga os geradores
-				viPrintf(m_vi, ":OUTPut1:STATe ON\n");
-				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
-*/	
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCC, 1000, NULL);
 			}
@@ -624,17 +535,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 	else
 	{
 		KillTimer(ID_TIMER_FCC);
-/*
-		//Desliga os geradores de sinais
-		viPrintf(m_vi, ":OUTPut1:STATe OFF\n");
-		viPrintf(m_vi, ":OUTPut2:STATe OFF\n");
-
-*/		
+	
 		vg_source.stop(2);
 		vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+
 		if(!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 		flag_fcc = false;
 
@@ -661,8 +566,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 {
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
-
-	//char temp[256];
 
 	// TODO: Add your control notification handler code here
 	if (!m_bAquisicaoAtiva)
@@ -692,56 +595,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 
 				UpdateData(TRUE);
 				m_receive = "";
-				UpdateData(FALSE);
+				UpdateData(FALSE);	
 
-				/*
-				//Ajusta a escala do canal 1 (Vsd)
-				sprintf_s(temp, 256, ":CHANnel1:SCALe %.0e\n", fabs(m_FCSParametersDlg.m_Vsd) / 3);
-				viPrintf(m_vi, temp);
-				viPrintf(m_vi, ":CHANnel1:POSition 0\n");
-
-				//Ajusta a escala do canal 2 (Vg)
-				sprintf_s(temp, 256, ":CHANnel2:SCALe %.0e\n", m_FCSParametersDlg.m_Vgmax / 3);
-				viPrintf(m_vi, temp);
-				viPrintf(m_vi, ":CHANnel2:POSition 0\n");
-
-				//Ajusta a base de tempo horizontal
-				sprintf_s(temp, 256, ":TIMEbase:SCALe %.0e\n", 0.5 * 1 / m_FCSParametersDlg.m_Vgfreq);
-				viPrintf(m_vi, temp);
-
-				//Ajusta a saída do gerador de sinais 1 (Vsd)
-				viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
-				viPrintf(m_vi, ":SOURce1:FUNCtion DC\n");
-				sprintf_s(temp, 256, ":SOURce1:VOLTage:OFFSet %f\n", m_FCSParametersDlg.m_Vsd);
-				viPrintf(m_vi, temp);
-				viPrintf(m_vi, ":OUTPut1:IMPedance OMEG\n");
-
-				//Ajusta a saída do gerador de sinais 2 (Vg)
-				viPrintf(m_vi, ":SOURce2:TYPE NONE\n");
-				viPrintf(m_vi, ":SOURce2:FUNCtion RAMP\n");
-				viPrintf(m_vi, ":SOURce2:FUNCtion:RAMP:SYMMetry 50\n");
-				sprintf_s(temp, 256, ":SOURce2:VOLTage %f\n", 
-					m_FCSParametersDlg.m_Vgmax - m_FCSParametersDlg.m_Vgmin);
-				viPrintf(m_vi, temp);
-				sprintf_s(temp, 256, ":SOURce2:FREQuency %f\n",	
-					m_FCSParametersDlg.m_Vgfreq);
-				viPrintf(m_vi, temp);
-				sprintf_s(temp, 256, ":SOURce2:VOLTage:OFFSet %f\n",
-					(m_FCSParametersDlg.m_Vgmax + m_FCSParametersDlg.m_Vgmin) / 2);
-				viPrintf(m_vi, temp);
-				viPrintf(m_vi, ":OUTPut2:IMPedance OMEG\n");
-
-				//Ajusta o trigger
-				viPrintf(m_vi, ":TRIGger:EDGE:SOURce CHANnel2\n");
-				viPrintf(m_vi, ":TRIGger:EDGE:SLOPe POSitive\n");
-				sprintf_s(temp, 256, ":TRIGger:EDGE:LEVel %f\n",
-					(m_FCSParametersDlg.m_Vgmax + m_FCSParametersDlg.m_Vgmin) / 2);
-				viPrintf(m_vi, temp);
-
-				//Liga os geradores
-				viPrintf(m_vi, ":OUTPut1:STATe ON\n");
-				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
-				*/
 				/*
 				build_log_message("Configurando osciloscópio para FCS");
 				UpdateData(TRUE);
@@ -749,6 +604,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				UpdateData(FALSE);
 				*/
 				//reset_square_wave();
+
+				results_fcs = tester.get_fcs_parameters();
+
 				flag_fcs = true;
 				flag_scale_set = false;
 
@@ -831,9 +689,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
-
 
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCS, 1000, NULL);
@@ -845,13 +700,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 		KillTimer(ID_TIMER_FCS);
 
 		//Desliga os geradores de sinais
-		//viPrintf(m_vi, ":OUTPut1:STATe OFF\n");
-		//viPrintf(m_vi, ":OUTPut2:STATe OFF\n");
 		vg_source.stop(2);
 		vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+
 		if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 		flag_fcs = false;
 		
@@ -1043,13 +895,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
 
 				char buff[10] = { 0 };
-				/*
-				//Set High Res and 1M points
-				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-				SendCommand(buff);
-				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-				SendCommand(buff);
-				*/
+
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
 				SendCommand(buff);
@@ -1064,19 +910,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 
 				//Liga canais de medição
 				vds_meas.on();
-				//current_meas.on();
+				current_meas.on();
 				vg_meas.on();
-
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
 
 				vds_source.start(1);
 				vg_source.start(2);
 				sleep_for(milliseconds(100));
 				string_to_char_array(sys_commands.SINGLE, &buff[0]);
 				SendCommand(buff);
-
-				
 
 				//Ativa o timer
 				SetTimer(ID_TIMER_FCP, 1000, NULL);
@@ -1088,10 +929,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 		KillTimer(ID_TIMER_FCP);
 
 		vg_source.stop(2);
-		//vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
+
 		m_SNPrompt.m_Serial_Number = "";
 		flag_fcp = false;
 
@@ -1119,10 +958,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 {
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
-	//std::string trg_status = tester.read_trigger_status();
-	//ViConstString read = ":TRIGger:STATus?\n";
 	char trg_status_buff[256] = { 0 };
-	//string_to_char_array(read, SCPI_command);
 	viPrintf(m_vi, ":TRIGger:STATus?\n");
 	viScanf(m_vi, "%t\n", &trg_status_buff);
 	std::string trg_status = trg_status_buff;
@@ -1138,7 +974,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 	std::ofstream myfile;
 	char buff[10] = { 0 };
 	char buff2[23] = { 0 };
-	//float measurements[][];
 	
 	switch (nIDEvent) {
 	case ID_TIMER_ADQUIRIR:
@@ -1180,43 +1015,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						fs::create_directories(path);
 					}
 
-					//myfile.open(path);
-					//myfile << cabecalho << "\n";
-					//Ts = vds_meas.get_sample_period(m_vi);
-					/*
-					build_log_message("Lendo dados do canal");
-					UpdateData(TRUE);
-					m_receive = tester.log_string.c_str();
-					UpdateData(FALSE);
-					*/
-					/*
-					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path, mean_data_path);
-					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
-					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
-
-					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
-					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path);
-					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT, raw_data_path); 
-
-					tam_vds = m_pwndGraficoCanal[vds_meas.get_id() - 1].getTamVetorDeDados();
-					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
-					
-					build_log_message("Escrevendo curvas nos arquivos");
-					UpdateData(TRUE);
-					m_receive = tester.log_string.c_str();
-					UpdateData(FALSE);
-					
-					if (tam_vds >= tam_current) {
-						tam_fcc = tam_vds;
-					}
-					else {
-						tam_fcc = tam_current;
-					}
-					for (int i = 0; i < tam_fcc; i++) {
-						myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
-					}
-					myfile.close();
-					*/
 					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
@@ -1236,8 +1034,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						sleep_for(milliseconds(100));
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
-
-						//force = false;
 					}
 				}
 				else {
@@ -1259,9 +1055,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						sleep_for(milliseconds(1000));
 						string_to_char_array(sys_commands.SINGLE, &buff[0]);
 						SendCommand(buff);
-
-						//stopped = false;
-						//started = false;
 					}
 				}
 			}
@@ -1286,10 +1079,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				myfile << result_path << "\n";
 				myfile.close();
 
-				//const std::string &path = "C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py";
-				//LPCTSTR blabla = path.c_str();
-
-				//system("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py");
 				system("python.exe FCC_Current_SourceFinal.py");
 
 				/*
@@ -1333,7 +1122,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				myfile.close();
 				*/
 				UpdateData(TRUE);
-				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 				UpdateData(FALSE);
 				if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 				/*
@@ -1375,39 +1164,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);*/
 						fs::create_directories(path);
-					}/*
-					path += "/results" + std::to_string(burst_count) + ".csv";
-					myfile.open(path);
-					myfile << cabecalho << "\n";
-					/*
-					build_log_message("Lendo dados do canal");
-					UpdateData(TRUE);
-					m_receive = tester.log_string.c_str();
-					UpdateData(FALSE);
+					}
 
-					Ts = vg_meas.get_sample_period(m_vi);
-					leDadosCanal(vds_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
-					leDadosCanal(current_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
-					leDadosCanal(vg_meas.get_id(), BUCKET_SIZE_DEFAULT, "");
-					tam_vg = m_pwndGraficoCanal[vg_meas.get_id() - 1].getTamVetorDeDados();
-					tam_current = m_pwndGraficoCanal[current_meas.get_id() - 1].getTamVetorDeDados();
-					/*
-					build_log_message("Escrevendo curvas nos arquivos");
-					UpdateData(TRUE);
-					m_receive = tester.log_string.c_str();
-					UpdateData(FALSE);
-					
-					if (tam_vg >= tam_current) {
-						tam_fcc = tam_vg;
-					}
-					else {
-						tam_fcc = tam_current;
-					}
-					for (int i = 0; i < tam_fcc; i++) {
-						myfile << Ts * i << ";" << m_pwndGraficoCanal[vds_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[current_meas.get_id() - 1].getAt(i) << ";" << m_pwndGraficoCanal[vg_meas.get_id() - 1].getAt(i) << "\n";
-					}
-					myfile.close();
-					*/
 					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
@@ -1438,25 +1196,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);
 					*/
 					burst_count = 0;
-					//stopped = false;
-					//started = false;
-					//vg_index++;
-					//if (vg_index < results.vg_vector.size()) {
-					//	results.vg_source_params.v_offset = results.vg_vector[vg_index];
-					//	vg_source.write_parameters_to_osc(results.vg_source_params);
-					//	string_to_char_array(sys_commands.SINGLE, &buff[0]);
-					//	SendCommand(buff);
-					//	vg_source.start(2);
-					//	vds_source.start(1);
-
-					//}
-				
-			//}
-			//else {
-					//vg_index = 0;
 					vg_source.stop(2);
 					vds_source.stop(1);
-					//COLOCAR FUNÇÃO MÉDIA
+
 					/*
 					build_log_message("Chamando Python para análise dos dados");
 					UpdateData(TRUE);
@@ -1476,7 +1218,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);
 					*/
 					UpdateData(TRUE);
-					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					//m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 					UpdateData(FALSE);
 
 					if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
@@ -1502,17 +1245,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 		break;
 	case ID_TIMER_FCP:
-		/*
-		if (trg_status == "RUN\n") {
-			started = true;
-			stopped = false;
-		}
-		else if (started && (trg_status == "STOP\n")) {
-			started = false;
-			stopped = true;
-		}*/
-
-		//if (trg_status == "STOP\n") {
 		if (flag_scale_set_status) {
 			string_to_char_array(sys_commands.STOP, &buff[0]);
 			SendCommand(buff);
@@ -1610,10 +1342,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				m_SNPrompt.m_Serial_Number = "";
 				burst_count = 0;
 				stopped = false;
-				//started = false;
+
 				vds_source.stop(1);
 				vg_source.stop(2);
-				//vds_source.stop(1);
+
 				/*
 				build_log_message("Chamando Python para análise dos dados");
 				UpdateData(TRUE);
@@ -1639,9 +1371,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 					system("python.exe FCP_Final.py");
 
-					//COLOCAR FUNÇÃO MÉDIA
 					UpdateData(TRUE);
-					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					//m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 					UpdateData(FALSE);
 					reset_square_wave();
 				}
@@ -1664,14 +1396,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			}*/
 		}
 		break;
-	/*case ID_TIMER_RESET:
-		//string_to_char_array(":SOURce1:FUNCtion RAMP\n", &buff2[0]);
-		//SendCommand(buff2);
-		string_to_char_array(":SOURce2:FUNCtion RAMP\n", &buff2[0]);
-		SendCommand(buff2);
-		flag_reset_waveform = false;
-		OnBnClickedButton10();
-		break;*/
 	default:
 		break;
 	}
@@ -1759,13 +1483,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 				mean_signals[i][j] = 0;
 			}
 		}
-	}/*
-	for (auto& linha : raw_signals) {
-		linha.assign(4, 0);
 	}
-	for (auto& linha : mean_signals) {
-		linha.assign(4, 0);
-	}*/
 
 	//Seleciona o primeiro canal
 	temp = new char[256];
@@ -1781,18 +1499,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
 	Ts = 1/atof(temp);		//Período de amostragem
-	/*
-	std::string srate_path = "";
-	for (int i = (mean_path.length() - 1); i > 0;i--) {	//Acha a ultima barra
-		if (mean_path[i] ==  '/') {
-			for (int j = 0; j < (i+1); j++) {	//Copia string até a barra, obtendo o path do resultado do teste
-				srate_path[j] = mean_path[j];
-			}
-			break;
-		}
-	}
-	srate_path += "srate.txt";
-	std::ofstream arquivo_srate(srate_path);*/
+	
 	std::ofstream arquivo_srate(result_path+"srate.txt");
 	arquivo_srate << temp << "\n";
 	arquivo_srate.close();
@@ -1883,13 +1590,11 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	delete[] buf;
 
 	if (!flag_scale_set) {
-		//if (bucket_size == BUCKET_SIZE_FCP) {
 		std::ofstream arquivo(raw_path, std::ios::binary);
 		for (const auto& linha : raw_signals) {
 			arquivo.write(reinterpret_cast<const char*>(linha.data()), linha.size() * sizeof(int));
 		}
 		arquivo.close();
-		//}
 
 		std::ofstream arquivo_mean(mean_path);
 		arquivo_mean << cabecalho << "\n";
@@ -1959,27 +1664,6 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int 
 	tam = atoi(temp);
 	delete[] temp;
 
-	/*
-	CString lixo;						// Imprime o tamanho
-	lixo.Format(_T("%d"), tam);
-	GetDlgItem(IDC_EDIT_RCVD_MSG)->SetWindowTextW(lixo);
-	*/
-
-	//std::ofstream myfile;
-	//myfile.open("example.csv");
-	//sinal = new float[tam];
-	/*
-	const unsigned long long size = 1024ULL * 1024ULL;
-	unsigned long long a[size];
-
-	FILE* pFile;
-	pFile = fopen("file.binary", "wb");
-	for (unsigned long long j = 0; j < 1024; ++j) {
-		//Some calculations to fill a[]
-		fwrite(a, 1, size * sizeof(unsigned long long), pFile);
-	}
-	fclose(pFile);
-	*/
 	sinal = new float[tam/bucket_size];				// Aloca o buffer e preenche
 	int aux = 0;
 	int sinal_it = 0;
@@ -1996,12 +1680,8 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int 
 			aux = 0;
 			soma = 0;
 		}
-				
-		//myfile << Ts * i << "," << sinal[i] << "\n";
 		aux++;
-		//sinal[i] = (buf[2 + N + i] - 127) * deltaV;
 	}
-	//myfile.close();
 
 	m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, 127 * deltaV);
 	m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam/bucket_size);
@@ -2037,11 +1717,6 @@ bool SendCommand(std::string _command, bool check_response_loop, std::string che
 	
 	command = _command.c_str();
 	command += "\n";
-	/*
-	stringTemp_ptr = new char[static_cast<int>(_command.length())];
-
-	for (int i = 0; i < _command.length(); i++)
-		stringTemp_ptr[i] = _command[i];*/
 
 	for (int i = 0; i < command.GetLength(); i++)
 		stringTemp[i] = (char)command.GetAt(i);
@@ -2054,11 +1729,6 @@ bool SendCommand(std::string _command, bool check_response_loop, std::string che
 	if (check_response_loop) {
 		command = check_command.c_str();;
 		command += "\n";
-		/*
-		stringTemp_check_ptr = new char[command.GetLength()];
-
-		for (int i = 0; i < command.GetLength(); i++)
-			stringTemp_check_ptr[i] = (char)command.GetAt(i);*/
 
 		for (int i = 0; i < command.GetLength(); i++)
 			stringTemp_check[i] = (char)command.GetAt(i);
@@ -2141,320 +1811,6 @@ std::string readOsciloscope(char _command[256])
 	return  aux;
 };
 
-/*
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton1()
-{
-	TestHandler teste;
-	teste.clear_screen();
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton2()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 60;
-	source_1.Id = 1;
-	source_1.v_offset = 0;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	gerador1.start(source_1.Id);
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton3()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 60;
-	source_1.Id = 1;
-	source_1.v_offset = 0;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	gerador1.stop(source_1.Id);
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton4()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 60;
-	source_1.Id = 1;
-	source_1.v_offset = 0;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	gerador1.waveForm_write_to_osc(source_1);
-
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton5()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 60;
-	source_1.Id = 1;
-	source_1.v_offset = 0;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	gerador1.Frequency_write_to_osc(source_1);
-
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton6()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 60;
-	source_1.Id = 1;
-	source_1.v_offset = 1;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	gerador1.VPP_write_to_osc(source_1);
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton7()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 60;
-	source_1.Id = 1;
-	source_1.v_offset = 1;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	gerador1.Voffset_write_to_osc(source_1);
-}
-
-
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton8()
-{
-	SourceChannel gerador1;
-	SourceChannel_parameters source_1;
-	source_1.freq = 10000;
-	source_1.Id = 1;
-	source_1.v_offset = 1;
-	source_1.v_pp = 2;
-	source_1.wave_type = "RAMP";
-	source_1.generatorType = "BURSt";
-	source_1.cycles = 15;
-	source_1.Burst_Type = "NCYCle";
-	gerador1.write_parameters_to_osc(source_1);
-
-}
-int get_CSV_numb_Lines(std::filesystem::path caminho) {
-
-	int lines=0;
-	string line;
-	
-		std::ifstream teste(caminho, ios::in);
-		if (teste.is_open()) {
-			while (!teste.eof()) {
-				getline(teste, line);
-				lines++;
-			}
-		}
-		teste.close();
-	
-	line.clear();
-	lines = lines - 1;
-	return (lines);
-}
-
-int get_File_Lines(std::filesystem::path caminho) {
-	vector<int> totalLines;
-	int aux;
-	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
-		std::ifstream teste(file.path(), ios::in);
-		totalLines.push_back( get_CSV_numb_Lines( file.path() ) );
-	}
-	aux = totalLines[0];
-	for (int i = 0; i < totalLines.size(); i++)
-	{
-		if (aux!=totalLines[i])
-		{
-			return 0;
-		}
-
-	}
-	return aux;
-}
-
-void Files_Path_in_Directory(std::filesystem::path caminho)
-{
-	std::string add = "Danilo ";
-	int i = 1;
-	int mean = 0;
-	int lines=get_File_Lines(caminho);
-	//double buffer[1000][4] = {};
-
-	auto buffer = new double[lines - 1][4];
-	for (int i = 0; i < (lines-1); i++)
-	{
-		for (int j = 0; j < 4; j++) {
-			buffer[i][j] = 0;
-		}
-	}
-	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
-
-		
-		std::ifstream teste(file.path(), ios::in);
-		mean++;
-
-
-		if (teste.is_open()) {
-						
-			vector<string> row;
-			string line, word;
-			word.clear();
-			int iterator = 0;
-
-
-
-			while (!teste.eof())
-			{	
-				
-					row.clear();
-					getline(teste, line);
-					if (line == cabecalho) { continue; }
-					else {
-						for (int p = 0; p < line.length(); p++) {
-							if (line[p] == ';' || (p == line.length() - 1)) {
-
-								if (p == line.length() - 1) {
-									word = word + line[p];
-								}
-
-								row.push_back(word);
-								word.clear();
-							}
-							else {
-								word = word + line[p];
-							}
-						}
-						for (int i = 0; i < row.size(); i++)
-						{
-							buffer[iterator][i] = stod(row[i]) + buffer[iterator][i];
-						}
-						word.clear();
-						iterator++;
-					}
-			}
-			i++;
-
-		}
-
-	}
-	ofstream newfile((add + to_string(i) + ".csv"), ios::out | ios::app);
-	
-	for (int i = 0; i < (lines-1); i++)
-	{
-		for (int j = 0; j < 4; j++) {
-			if(j==3){ 
-				newfile << (buffer[i][j])/mean<<"\n"; 
-				//newfile << lines << "\n";
-			}
-			else {
-				newfile << buffer[i][j]/mean<<";";
-				//newfile <<  lines<< ";";
-			}
-		}
-	}
-	delete[] buffer;
-}
-//Função que lê os arquivos .csv de um diretório, calcula a média das curvas
-//associadas, escreve os dados resultantes em um novo arquivo .csv
-//parâmetro: objeto path da biblioteca fylesistem que contém o endereço de onde
-//devemos manipular os dados
-
-void media_CSV_Osciloscopio(std::filesystem::path caminho) {
-
-	int mean = 0;    //iterador p/ calcular o número de arquivos acessados
-	int lines = get_File_Lines(caminho);    //armazena o número de linhas de um arquivo
-	auto buffer = new double[lines - 1][csv_columns]; //buffer de dados da de dados dos arquivos;
-
-	//(lines-1) Uma das linhas é o cabeçalho dos dados, "precisa-lá" exluir	
-	//loop para inicializar a matriz com zeros em todos os indices
-	for (int i = 0; i < (lines - 1); i++)
-	{
-		for (int j = 0; j < csv_columns; j++) {
-			buffer[i][j] = 0;
-		}
-	}
-	//loop que percorre todos arquivos de um diretório, acessa eles e acumula
-	// a soma deles em um Buffer
-	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
-
-		//acessar arquivo de um endereço no diretório
-		std::ifstream arquivo(file.path(), ios::in);
-		mean++;
-
-
-		if (arquivo.is_open()) {
-
-			vector<string> row;
-			string line, word;
-			word.clear();
-			int iterator = 0;
-
-			while (!arquivo.eof())
-			{
-				row.clear();
-				getline(arquivo, line);
-				if (line == cabecalho) { continue; }
-				else {
-					for (int p = 0; p < line.length(); p++) {
-						if (line[p] == ';' || (p == line.length() - 1)) {
-
-							if (p == line.length() - 1) {
-								word = word + line[p];
-							}
-
-							row.push_back(word);
-							word.clear();
-						}
-						else {
-							word = word + line[p];
-						}
-					}
-					for (int i = 0; i < row.size(); i++)
-					{
-						buffer[iterator][i] = stod(row[i]) + buffer[iterator][i];
-					}
-					word.clear();
-					iterator++;
-				}
-			}
-
-		}
-	}
-	ofstream newfile("Media_Dados_ArquivosDiretorio.csv", ios::out | ios::app);
-	for (int i = 0; i < (lines - 1); i++)
-	{
-		for (int j = 0; j < csv_columns; j++) {
-			if (j == 3) {
-				newfile << (buffer[i][j]) / mean << "\n";
-			}
-			else {
-				newfile << buffer[i][j] / mean << ";";
-			}
-		}
-	}
-	delete[] buffer;
-
-}
-*/
-void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButton9()
-{
-	// TODO: Add your control notification handler code here
-	
-	const std::filesystem::path pasta{ "Arquivos csv" };
-	
-	//media_CSV_Osciloscopio(pasta);
-}
-
 // Custom split() function (https://favtutor.com/blogs/split-string-cpp)
 vector <string> customSplit2(string str, char separator) {
 	int startIndex = 0, endIndex = 0;
@@ -2523,6 +1879,7 @@ bool more_recent(vector<std::string> date, vector<std::string> ref) {
 
 	return false;
 }
+
 /*
 void build_log_message(std::string msg) {
 	
@@ -2636,37 +1993,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt()
 {
 	if (m_SNPrompt.DoModal() == IDOK)
 	{
-			/*
-			std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
-			time_t tt;
-			tt = std::chrono::system_clock::to_time_t(today);
-			char str[27] = { 0 };
-
-			ctime_s(str, sizeof str, &tt);
-			std::string date_str = "";
-
-			for (int i = 0; i < 20; i++) {
-				if (str[i + 4] == ' ' || str[i + 4] == ':') {
-					if (str[i + 5] != ' ' && str[i + 5] != ':') date_str += '-';
-				}
-				else {
-					date_str += str[i + 4];
-				}
-			}
-
-			CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/" + date_str.c_str() + "/";
-			result_path = CStringA(results_path);
-			if (!fs::exists(result_path)) {
-				fs::create_directories(result_path);
-			}
-			*/
-
-			//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+		//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
 		vector<string> splitted_values_aux;
 		vector<string> splitted_values_ref;
 		CString fcc_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/";	//CString por causa do SN
 		std::string fcc_path_str = CStringA(fcc_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
-		//std::filesystem::path caminho{ fcc_path_str };
 
 		if (fs::exists(fcc_path_str)) {
 			//Encontrar o teste mais recente
@@ -2711,7 +2042,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt()
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 {
-	//vg_index = vg_index;
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
 	bool aq_status = false;
@@ -2794,20 +2124,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						vector<string> splitted_values_aux;
 						vector<string> splitted_values_ref;
 						CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
-						
-						/*
-						CString fcs_path;
-						if (Freq_Iterator != 0)
-						{
-							fcs_path.Append(database_path + promptFCP + "/FCS/");
-							m_SNPrompt.m_Serial_Number.~CStringT();
-							m_SNPrompt.m_Serial_Number.Append(promptFCP);
-
-						}
-						else
-						{
-							fcs_path.Append(database_path + m_SNPrompt.m_Serial_Number + "/FCS/");	//CString por causa do SN
-						}*/
 					
 						std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
 						std::filesystem::path caminho{ vg_values_path };
@@ -2872,8 +2188,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 								GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
 								GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
 								GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+								new_fcp_flag = false;
+								flag_fcp = false;
+								flag_scale_set = false;
+								flag_scale_set_status = false;
 								if (flag_run_all) {
-									flag_fcp = false;
 									OnBnClickedButtonRunall();
 								}
 								return;
@@ -2897,12 +2216,16 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
 							GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
 							GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
-							GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
+							GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
 							GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+							new_fcp_flag = false;
+							flag_fcp = false;
+							flag_scale_set = false;
+							flag_scale_set_status = false;
 							if (flag_run_all) {
-								flag_fcp = false;
 								OnBnClickedButtonRunall();
 							}
+
 							return;
 						}
 
@@ -2960,12 +2283,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 				}
 				else {
 					//set Acquire
-					//sleep_for(milliseconds(500));
 
 					results_fcp.vds_meas_params.offset = -(max_vds + min_vds)/2;
-					UpdateData(TRUE);
-					m_receive = (std::to_string(max_vds) + "," + std::to_string(min_vds)).c_str();
-					UpdateData(FALSE);
 					results_fcp.vds_meas_params.volts_div = (max_vds)*1.1/8;
 					vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
 
@@ -2984,13 +2303,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						delay_time = delay_time * 5;
 					}
 				}
-				/*
-				//Set High Res and 1M points
-				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-				SendCommand(buff);
-				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-				SendCommand(buff);
-				*/
 
 				string_to_char_array(sys_commands.ALIAS_OFF, &buff[0]);
 				SendCommand(buff);
@@ -3012,11 +2324,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 
 				//Liga canais de medição
 				vds_meas.on();
-				//current_meas.on();
+				current_meas.on();
 				vg_meas.on();
-
-				//string_to_char_array(sys_commands.TFORCE, &buff[0]);
-				//SendCommand(buff);
 
 				vds_source.start(1);
 				vg_source.start(2);
@@ -3041,12 +2350,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		KillTimer(ID_TIMER_FCP);
 
 		vg_source.stop(2);
-		//vds_source.stop(1);
+		vds_source.stop(1);
 		burst_count = 0;
-		//stopped = false;
-		//started = false;
 		m_SNPrompt.m_Serial_Number = "";
-		//flag_fcp = false;
 
 		char buff[10] = { 0 };
 		string_to_char_array(sys_commands.RUN+"\n", &buff[0]);

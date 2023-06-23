@@ -96,9 +96,6 @@ FCC_parameters TestHandler::get_fcc_parameters(){
     //parameters.current_meas_params.volts_div = stof(read_values)*(parameters.g_tia)/4; //8 divisions
     parameters.vds_meas_params.volts_div = stof(read_values)/4; //8 divisions
 
-   // parameters.vg_source_params.v_pp = parameters.vg_vector[0];
-    //parameters.vg_source_params.v_offset = parameters.vg_vector[0];
-
     //Finding the greater absolute value of vg
     float max_mod = 0;
     for (int it = 0 ; it < parameters.vg_vector.size() ; it++) {
@@ -166,7 +163,6 @@ FCS_parameters TestHandler::get_fcs_parameters() {
     parameters.vg_source_params.cycles = stoul(ini.get("FCS").get("CYCLES"));
     parameters.vg_source_params.freq = stof(ini.get("FCS").get("FREQ"));
     parameters.t_scale = float(parameters.vg_source_params.cycles) / (float(parameters.vg_source_params.freq) * 10);   //Divides by ten because there are ten divisions in osciloscope time scale
-    //log_string = to_string(parameters.vds_source_params.freq);
 
     //Read transimpedance amp gain and voltage drop
     parameters.g_tia = stof(ini.get("FCS").get("G_TIA"));
@@ -195,32 +191,15 @@ FCP_parameters TestHandler::get_fcp_parameters() {
 
     //Create and setup parameters struct
     FCP_parameters parameters;
-    //parameters.vds_source_params.Id = 1;
-    //parameters.vds_source_params.wave_type = "DC";
     parameters.vg_source_params.Id = 2;
     parameters.vg_source_params.wave_type = "SQU";
     parameters.vds_meas_params.Id = 1;
-    //parameters.current_meas_params.Id = 2;
     parameters.vg_meas_params.Id = 3;
     parameters.vds_source_params.Id = 1;
     parameters.vds_source_params.wave_type = "DC";
     parameters.current_meas_params.Id = 2;
     //Aux variables
     string read_values;
-    //vector<string> splitted_values;
-
-    //Read Vg values and build vector
-    //parameters.vds_source_params.v_pp = 0;
-    //parameters.vds_source_params.v_offset = stof(ini.get("FCS").get("VDS"));
-
-    //Read Vg max and min and calculate vpp and voffset
-    //read_values = ini.get("FCS").get("VG_SPAN");
-    //splitted_values = customSplit(read_values, ';');
-    //parameters.vg_source_params.v_pp = stof(splitted_values[1]) - stof(splitted_values[0]);
-    //parameters.vg_source_params.v_offset = stof(splitted_values[1]) - parameters.vg_source_params.v_pp / 2;
-    //Vg source will also be measured as a reference in CH1, so we need to setup the measurement channel vertical scale:
-    //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
-    //parameters.vg_meas_params.volts_div = stof(splitted_values[1]) / 4; //Vpeak*2/8 = Vpeak/4. We divide by ten because there are 8 divisions
 
     //Read freq and cycles number and calculates the time scale to set
     //Warning: the t_scale result may not be acepted by the osciloscope, because there are specific values for it
@@ -237,14 +216,6 @@ FCP_parameters TestHandler::get_fcp_parameters() {
     log_string = to_string(parameters.t_scale);
     LOW_log_string = to_string(parameters.Low_t_scale);
     HIGH_log_string= to_string(parameters.High_t_scale);
-
-    //Read transimpedance amp gain and voltage drop
-    //parameters.g_tia = stof(ini.get("FCS").get("G_TIA"));
-    //parameters.v_tia = stof(ini.get("FCS").get("V_TIA"));
-
-    //Read max expected current to calculate the vertical scale of the channel
-    //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
-    //read_values = ini.get("FCS").get("MAX_CURR_EXPECT");
 
     //VDS measurement parameters
     parameters.vds_meas_params.volts_div = stof(ini.get("FCP").get("MAX_VDS_EXPECT")) / 4;
@@ -272,16 +243,8 @@ Trigger_parameters TestHandler::read_trigger_parameters()
 //Output: boolean success/fail flag (true=success)
 bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
 {
-    /*struct Trigger_parameters{
-	float level;
-	std::string mode;
-	std::string slope;
-	unsigned int source;
-};*/
-
     char command[256] = { 0 };
     std::string command_str = "";
-    //std::string log_string = "";
     std::string mode = ":MODE";
     std::string slope = ":SLOP ";
     std::string source = ":SOUR ";
@@ -295,7 +258,6 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    //log_string += command_str;
     command_str = trigger + ":" + parameters.mode;
 
     //Set slope
@@ -303,7 +265,6 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    //log_string += command_str;
     command_str = trigger + ":" + parameters.mode;
 
     //Set SOURCE
@@ -311,7 +272,6 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    //log_string += command_str;
     command_str = trigger + ":" + parameters.mode;
 
     //Set level
@@ -319,7 +279,6 @@ bool TestHandler::send_trigger_parameters(Trigger_parameters parameters)
     command_str += "\n";
     string_to_char_array(command_str, &command[0]);
     SendCommand(command);
-    //log_string += command_str;
 
     return false;
 }
@@ -438,26 +397,7 @@ bool TestHandler::set_osc_to_fcc(FCC_parameters parameters)
 
     return false;
 }
-/*
-//Set SINGLE mode and turn sources on
-//Output: boolean success/fail flag (true=success)
-bool TestHandler::start_fcc()
-{
 
-    return false;
-};
-
-//Save FCC curves into CSV file
-//Inputs: to be defined
-//Outputs: to be defined
-void TestHandler::save_fcc_in_csv(float vg, string data){};
-
-//Generate caracteristic curves and calculate Rg
-//Inputs: to be defined
-//Outputs: to be defined
-
-void TestHandler::calculate_fcc_results(){};
-*/
 //--------------End of TestHandler Class functions---------------------------------
 //--------------Begin of MeasurementChannel Class functions------------------------
 
@@ -625,16 +565,6 @@ int MeasurementChannel::read_channel_wave(ViSession m_vi, float* result_buff) {
     viPrintf(m_vi, temp);
     delete[] temp;
 
-    /*
-    //Determina a resolução horizontal
-    viPrintf(m_vi, ":WAVeform:XINCrement?\n");
-    viRead(m_vi, buf, cnt, &readcnt);
-    temp = new char[readcnt];
-    for (int i = 0; i < readcnt; i++)
-        temp[i] = buf[i];
-    Ts = atof(temp);		//Período de amostragem
-    delete[] temp;*/
-
     //Determina a resolução vertical
     viPrintf(m_vi, ":WAVeform:YINCrement?\n");
     viRead(m_vi, buf, cnt, &readcnt);
@@ -659,25 +589,9 @@ int MeasurementChannel::read_channel_wave(ViSession m_vi, float* result_buff) {
     tam = atoi(temp);
     delete[] temp;
 
-    /*
-    CString lixo;						// Imprime o tamanho
-    lixo.Format(_T("%d"), tam);
-    GetDlgItem(IDC_EDIT_RCVD_MSG)->SetWindowTextW(lixo);
-    */
-
-    //std::ofstream myfile;
-    //myfile.open("example1.csv");
-
-   // result_buff = new float[tam];				// Aloca o buffer e preenche
     for (int i = 0; i < tam; i++) {
         result_buff[i] = (buf[2 + N + i] - 127) * deltaV;
-        //result[i] = sinal[i];
-        //myfile  << sinal[i] << "\n";
     }
-
-    //myfile.close();
-
-    //delete[] sinal;
 
     return tam;
 }
@@ -716,9 +630,6 @@ bool SourceChannel::write_parameters_to_osc(SourceChannel_parameters parameters)
     VPP_write_to_osc(parameters);
     Voffset_write_to_osc(parameters);
     Generator_type_to_osc(parameters);
-    //Burst_Type_write_to_osc(parameters);
-    //Burst_Cycles_write_to_osc(parameters);
-    
     return false;
 };
 
@@ -807,11 +718,6 @@ bool SourceChannel::stop(int Source_ID)
     SendCommand(SCPI_command);
     return false;
 };
-/*
-bool SourceChannel::burst(int Source_ID)
-{
-
-}*/
 
 //--------------End of  SourceChannel Class functions------------------------
 //--------------Begin of auxiliar functions----------------------------------------
@@ -861,43 +767,5 @@ void string_to_char_array(std::string str, char* buffer) {
         buffer[i] = str[i];
     }
 }
-
-/*
-void SendCommand(char _command[256])
-{
-    ViSession defaultRM, vi;
-    char buf[256] = { 0 };
-    CString s, command;
-    //char* stringTemp;
-    char stringTemp[256];
-
-    ViChar buffer[VI_FIND_BUFLEN];
-    ViRsrc matches = buffer;
-    ViUInt32 nmatches;
-    ViFindList list;
-
-    viOpenDefaultRM(&defaultRM);
-    //Acquire the USB resource of VISA
-    viFindRsrc(defaultRM, "USB?*", &list, &nmatches, matches);
-    viOpen(defaultRM, matches, VI_NULL, VI_NULL, &vi);
-
-    //Send the command received
-    //m_combox.GetLBText(m_combox.GetCurSel(), strTemp);
-    //m_combox.GetWindowText(strTemp);
-    command = _command;
-    command += "\n";
-    //stringTemp = (char*)(LPCTSTR)strTemp;
-    for (int i = 0; i < command.GetLength(); i++)
-        stringTemp[i] = (char)command.GetAt(i);
-
-    theApp.m_pMainWnd->UpdateData(TRUE);
-    theApp.m_pMainWnd->m_receive = stringTemp;
-    theApp.m_pMainWnd->UpdateData(FALSE);
-
-    viPrintf(vi, stringTemp);
-
-    viClose(defaultRM);
-}
-*/
 //--------------End of auxiliar functions----------------------------------------
 
