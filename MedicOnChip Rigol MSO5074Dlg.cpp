@@ -1560,24 +1560,19 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				std::string raw_data_path = "";
 				switch (Freq_Iterator) {
 					case 0:
-						result_path = path + "/FLOW";
-						if (!fs::exists(result_path)) {
-							fs::create_directories(result_path);
-						}
-						raw_data_path = result_path + "/raw_data_FLOW" + std::to_string(burst_count) + ".dat";
-						path = result_path + "/results_FLOW" + std::to_string(burst_count) + ".csv";
+						result_path = path + "/FLOW/";
 						break;
 					case 1:
-						result_path = path + "/FHIGH";
-						if (!fs::exists(result_path)) {
-							fs::create_directories(result_path);
-						}
-						raw_data_path = result_path + "/raw_data_FHIGH" + std::to_string(burst_count) + ".dat";
-						path = result_path + "/results_FHIGH" + std::to_string(burst_count) + ".csv";
+						result_path = path + "/FHIGH/";
 						break;
 					default:
 						break;
 				}
+				if (!fs::exists(result_path)) {
+					fs::create_directories(result_path);
+				}
+				raw_data_path = result_path + "raw_data" + std::to_string(burst_count) + ".dat";
+				path = result_path + "results" + std::to_string(burst_count) + ".csv";
 				
 				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
 				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path, results_fcp.vds_meas_params.offset);
@@ -1786,6 +1781,22 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
 	Ts = 1/atof(temp);		//Período de amostragem
+	/*
+	std::string srate_path = "";
+	for (int i = (mean_path.length() - 1); i > 0;i--) {	//Acha a ultima barra
+		if (mean_path[i] ==  '/') {
+			for (int j = 0; j < (i+1); j++) {	//Copia string até a barra, obtendo o path do resultado do teste
+				srate_path[j] = mean_path[j];
+			}
+			break;
+		}
+	}
+	srate_path += "srate.txt";
+	std::ofstream arquivo_srate(srate_path);*/
+	std::ofstream arquivo_srate(result_path+"srate.txt");
+	arquivo_srate << temp << "\n";
+	arquivo_srate.close();
+
 	delete[] temp;
 
 	//Itera sobre cada canal
