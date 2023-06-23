@@ -516,7 +516,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				results.vg_source_params.v_offset = results.vg_vector[0];
 				vg_source.write_parameters_to_osc(results.vg_source_params);
 
-				char buff[10] = { 0 };
+				char buff[20] = { 0 };
+
+				string_to_char_array(sys_commands.ALIAS_OFF, &buff[0]);
+				SendCommand(buff);
+				for (int i = 0; i < 20; i++) {
+					buff[i] = 0;
+				}
 
 				string_to_char_array(sys_commands.RUN, &buff[0]);
 				SendCommand(buff);
@@ -789,12 +795,18 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				vds_source.write_parameters_to_osc(results_fcs.vds_source_params);
 				vg_source.write_parameters_to_osc(results_fcs.vg_source_params);
 
-				char buff[10] = { 0 };
+				char buff[20] = { 0 };
 
 				string_to_char_array(sys_commands.RUN, &buff[0]);
 				SendCommand(buff);
 				sleep_for(milliseconds(500));
 				tester.type_Aquire(results_fcs.AquireType);
+
+				string_to_char_array(sys_commands.ALIAS_ON, &buff[0]);
+				SendCommand(buff);
+				for (int i = 0; i < 20; i++) {
+					buff[i] = 0;
+				}
 
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
@@ -2692,7 +2704,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
 	bool aq_status = false;
-	char buff[10] = { 0 };
+	char buff[20] = { 0 };
 	float delay_time = 1000;
 
 	if (!m_bAquisicaoAtiva)
@@ -2963,6 +2975,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
 				SendCommand(buff);
 				*/
+
+				string_to_char_array(sys_commands.ALIAS_OFF, &buff[0]);
+				SendCommand(buff);
+				for (int i = 0; i < 20; i++) {
+					buff[i] = 0;
+				}
+
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
 				SendCommand(buff);
