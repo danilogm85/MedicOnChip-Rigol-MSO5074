@@ -19,7 +19,7 @@
 #include <cmath>
 #include <sstream>
 #define csv_columns 4
-#define cabecalho "t;vds;corrente;vg"
+#define cabecalho "t[s];vds[v];corrente_ctrl[v];vg[v]"
 #define LOG_SIZE 10
 
 using namespace std;
@@ -1574,7 +1574,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				raw_data_path = result_path + "raw_data" + std::to_string(burst_count) + ".dat";
 				path = result_path + "results" + std::to_string(burst_count) + ".csv";
 				
-				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
+				vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
 				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path, results_fcp.vds_meas_params.offset);
 
 				if (flag_scale_set_status) {
