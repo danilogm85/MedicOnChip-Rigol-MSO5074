@@ -1,9 +1,9 @@
+print("Importando bibliotecas")
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import configparser
-
 
 adress = pd.read_csv("FCP.csv",header=None,sep=';')
 local= adress.loc[0][0]
@@ -92,10 +92,10 @@ configuracoes={
 
 }
 Info_Teste_FCP=pd.DataFrame(configuracoes,index=[0])
-data=pd.DataFrame(teste)
+#data=pd.DataFrame(teste)
 print(path)
 log = "Salvando resultados em: " + path + "\\resistencia" + ".csv"
 print(log)
-data.to_csv(path_or_buf=local+ "\\vds_fcp" + ".csv", sep=";",index=False)
+#data.to_csv(path_or_buf=local+ "\\vds_fcp" + ".csv", sep=";",index=False)
 Info_Teste_FCP.to_csv(path_or_buf=local+"\\INFO_CONFIG_FCP"+".csv",sep=";",index=False)
 #os.remove("FCP.csv")

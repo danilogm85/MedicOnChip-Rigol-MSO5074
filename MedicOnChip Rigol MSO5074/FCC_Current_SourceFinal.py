@@ -74,7 +74,7 @@ for path, directories, files in os.walk(local):
             "Rlim":Rlim
         }
         validacao=pd.DataFrame(configuracoes, index=[0])
-        validacao.to_csv(path_or_buf=path+ "\\configuracoes"+".csv", sep=";",index=False)
+        validacao.to_csv(path_or_buf=path+ "\\INFO_TESTE_FCC"+".csv", sep=";",index=False)
         data=pd.DataFrame(parametros)        
         #data.to_csv(path_or_buf=path+ "\\resistencia"+"_VG_"+str(result["VG"].mean()) + ".csv", sep=";",index=False)     
         data.to_csv(path_or_buf=path+ "\\resistencia"+".csv", sep=";",index=False)     

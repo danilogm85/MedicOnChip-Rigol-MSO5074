@@ -1,4 +1,4 @@
-print("Importando bibliotecas Disney")
+print("Importando bibliotecas")
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np

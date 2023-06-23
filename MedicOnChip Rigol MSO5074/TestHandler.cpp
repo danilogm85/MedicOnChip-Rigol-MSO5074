@@ -856,6 +856,7 @@ int main(){
 }
 
 void string_to_char_array(std::string str, char* buffer) {
+
     for (int i = 0; i < str.std::string::length(); i++) {
         buffer[i] = str[i];
     }

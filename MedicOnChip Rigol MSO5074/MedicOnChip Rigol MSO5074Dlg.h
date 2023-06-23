@@ -83,7 +83,7 @@ protected:
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int, unsigned int bucket_size, std::string bin_file_path);
 	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path, float offset=0);
-
+	void CMedicOnChipRigolMSO5074Dlg::CopyConfig();
 public:
 	afx_msg void OnBnClickedButtonFCC();
 	afx_msg void OnBnClickedButtonFCS();

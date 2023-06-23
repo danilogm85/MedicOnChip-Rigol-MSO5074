@@ -26,6 +26,8 @@ const struct sys_commands {
 	std::string CLEAR = ":CLEar";
 	std::string MDEPTH = ":ACQuire:MDEPth 1M";
 	std::string HRES = ":ACQuire:TYPE HRES";
+	std::string ALIAS_OFF = ":ACQuire:AALias OFF";
+	std::string ALIAS_ON = ":ACQuire:AALias ON";
 } sys_commands;
 
 struct Trigger_parameters{

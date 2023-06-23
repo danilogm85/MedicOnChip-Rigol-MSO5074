@@ -19,7 +19,7 @@
 #include <cmath>
 #include <sstream>
 #define csv_columns 4
-#define cabecalho "t;vds;corrente;vg"
+#define cabecalho "t[s];vds[v];corrente_ctrl[v];vg[v]"
 #define LOG_SIZE 10
 
 using namespace std;
@@ -480,7 +480,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
-				
+				CopyConfig();
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
@@ -516,7 +516,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				results.vg_source_params.v_offset = results.vg_vector[0];
 				vg_source.write_parameters_to_osc(results.vg_source_params);
 
-				char buff[10] = { 0 };
+				char buff[20] = { 0 };
+
+				string_to_char_array(sys_commands.ALIAS_OFF, &buff[0]);
+				SendCommand(buff);
+				for (int i = 0; i < 20; i++) {
+					buff[i] = 0;
+				}
 
 				string_to_char_array(sys_commands.RUN, &buff[0]);
 				SendCommand(buff);
@@ -770,7 +776,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
 				}
-
+				CopyConfig();
 				//Mostra os gráficos
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
@@ -789,12 +795,18 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				vds_source.write_parameters_to_osc(results_fcs.vds_source_params);
 				vg_source.write_parameters_to_osc(results_fcs.vg_source_params);
 
-				char buff[10] = { 0 };
+				char buff[20] = { 0 };
 
 				string_to_char_array(sys_commands.RUN, &buff[0]);
 				SendCommand(buff);
 				sleep_for(milliseconds(500));
 				tester.type_Aquire(results_fcs.AquireType);
+
+				string_to_char_array(sys_commands.ALIAS_ON, &buff[0]);
+				SendCommand(buff);
+				for (int i = 0; i < 20; i++) {
+					buff[i] = 0;
+				}
 
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
@@ -1548,26 +1560,21 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				std::string raw_data_path = "";
 				switch (Freq_Iterator) {
 					case 0:
-						result_path = path + "/FLOW";
-						if (!fs::exists(result_path)) {
-							fs::create_directories(result_path);
-						}
-						raw_data_path = result_path + "/raw_data_FLOW" + std::to_string(burst_count) + ".dat";
-						path = result_path + "/results_FLOW" + std::to_string(burst_count) + ".csv";
+						result_path = path + "FLOW/";
 						break;
 					case 1:
-						result_path = path + "/FHIGH";
-						if (!fs::exists(result_path)) {
-							fs::create_directories(result_path);
-						}
-						raw_data_path = result_path + "/raw_data_FHIGH" + std::to_string(burst_count) + ".dat";
-						path = result_path + "/results_FHIGH" + std::to_string(burst_count) + ".csv";
+						result_path = path + "FHIGH/";
 						break;
 					default:
 						break;
 				}
+				if (!fs::exists(result_path)) {
+					fs::create_directories(result_path);
+				}
+				raw_data_path = result_path + "raw_data" + std::to_string(burst_count) + ".dat";
+				path = result_path + "results" + std::to_string(burst_count) + ".csv";
 				
-				vector <unsigned int> channels = { vds_meas.get_id(), vg_meas.get_id() };
+				vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
 				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path, results_fcp.vds_meas_params.offset);
 
 				if (flag_scale_set_status) {
@@ -1774,6 +1781,22 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
 	Ts = 1/atof(temp);		//Período de amostragem
+	/*
+	std::string srate_path = "";
+	for (int i = (mean_path.length() - 1); i > 0;i--) {	//Acha a ultima barra
+		if (mean_path[i] ==  '/') {
+			for (int j = 0; j < (i+1); j++) {	//Copia string até a barra, obtendo o path do resultado do teste
+				srate_path[j] = mean_path[j];
+			}
+			break;
+		}
+	}
+	srate_path += "srate.txt";
+	std::ofstream arquivo_srate(srate_path);*/
+	std::ofstream arquivo_srate(result_path+"srate.txt");
+	arquivo_srate << temp << "\n";
+	arquivo_srate.close();
+
 	delete[] temp;
 
 	//Itera sobre cada canal
@@ -2692,7 +2715,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 	using namespace std::this_thread; // sleep_for, sleep_until
 	using namespace std::chrono; // nanoseconds, system_clock, seconds
 	bool aq_status = false;
-	char buff[10] = { 0 };
+	char buff[20] = { 0 };
 	float delay_time = 1000;
 
 	if (!m_bAquisicaoAtiva)
@@ -2847,7 +2870,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 								GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
 								GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
 								GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
-								GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP Alt."));
+								GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
 								GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 								if (flag_run_all) {
 									flag_fcp = false;
@@ -2883,14 +2906,19 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							return;
 						}
 
-						CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str();
+						CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str() + "/";
 						result_path = CStringA(results_path);
-
+						
 						FCPpath = result_path;
 
 						if (!fs::exists(result_path)) {
 							fs::create_directories(result_path);
 						}
+
+						CopyConfig();
+						std::ifstream inputFile(vg_values_path, std::ios::binary); // Abre o arquivo de origem em modo binário
+						std::ofstream outputFile(result_path + "vg_values.ini", std::ios::binary); // Abre o arquivo de destino em modo binário
+						outputFile << inputFile.rdbuf(); // Copia o conteúdo do arquivo de origem para o arquivo de destino
 					}
 					//Mostra os gráficos
 					for (int i = 0; i < m_numCanais; i++)
@@ -2963,6 +2991,13 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 				string_to_char_array(sys_commands.MDEPTH, &buff[0]);
 				SendCommand(buff);
 				*/
+
+				string_to_char_array(sys_commands.ALIAS_OFF, &buff[0]);
+				SendCommand(buff);
+				for (int i = 0; i < 20; i++) {
+					buff[i] = 0;
+				}
+
 				//Stop
 				string_to_char_array(sys_commands.STOP, &buff[0]);
 				SendCommand(buff);
@@ -3048,11 +3083,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 			promptFCP = CString("");
 			FCPpath = "";
 			flag_fcp = false;
+			if (flag_run_all) {
+				OnBnClickedButtonRunall();
+			}
 		}
 
-		if (flag_run_all) {
-			OnBnClickedButtonRunall();
-		}
 	}
 }
 
@@ -3095,4 +3130,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp()
 {
 	OnBnClickedButtonFcpAlt();
+}
+
+void CMedicOnChipRigolMSO5074Dlg::CopyConfig()
+{
+	std::ifstream inputFile("config.ini", std::ios::binary); // Abre o arquivo de origem em modo binário
+	std::ofstream outputFile(result_path+"config.ini", std::ios::binary); // Abre o arquivo de destino em modo binário
+	outputFile << inputFile.rdbuf(); // Copia o conteúdo do arquivo de origem para o arquivo de destino
+	return;
 }
