@@ -120,7 +120,7 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	string_to_char_array(sys_commands.RUN, &buff[0]);
 	SendCommand(buff);
 	string_to_char_array(sys_commands.MDEPTH, &buff[0]);
-	SendCommand(buff, true, ":ACQuire:MDEPth?", "1.0000E+06");
+	SendCommand(buff, false, ":ACQuire:MDEPth?", "1.0000E+06");
 	//string_to_char_array(sys_commands.HRES, &buff[0]);
 	//SendCommand(buff);
 }
@@ -457,7 +457,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				UpdateData(FALSE);
 
 				num_bursts = results.bursts;
-
+				/*
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
@@ -475,7 +475,47 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 					}
 				}
 
-				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/" + date_str.c_str() + "/";
+				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/" + date_str.c_str() + "/";*/
+
+				std::time_t currentTime;
+				std::time(&currentTime);
+				std::tm timeInfo;
+				localtime_s(&timeInfo, &currentTime);
+
+				std::string date_str = "";
+				date_str += "/" + std::to_string(timeInfo.tm_year + 1900);
+				date_str += "/" + std::to_string(timeInfo.tm_mon + 1);
+				date_str += "/" + std::to_string(timeInfo.tm_mday);
+				date_str += "/";
+
+				std::string time_str = "";
+				int hour = timeInfo.tm_hour;
+				int minute = timeInfo.tm_min;
+				int second = timeInfo.tm_sec;
+
+				if (hour <= 9) {
+					time_str += "0" + std::to_string(hour) + "-";
+				}
+				else {
+					time_str += std::to_string(hour) + "-";
+				}
+
+				if (minute <= 9) {
+					time_str += "0" + std::to_string(minute) + "-";
+				}
+				else {
+					time_str += std::to_string(minute) + "-";
+				}
+
+				if (second <= 9) {
+					time_str += "0" + std::to_string(second);
+				}
+				else {
+					time_str += std::to_string(second);
+				}
+
+				CString results_path = database_path + date_str.c_str() + m_SNPrompt.m_Serial_Number + "/FCC/" + time_str.c_str() + "/";
+
 				result_path = CStringA(results_path);
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
@@ -753,7 +793,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				flag_scale_set = false;
 
 				num_bursts = results_fcs.bursts;
-
+				/*
 				std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 				time_t tt;
 				tt = std::chrono::system_clock::to_time_t(today);
@@ -771,7 +811,47 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 					}
 				}
 
-				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/" + date_str.c_str() + "/";
+				CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/" + date_str.c_str() + "/";*/
+
+				std::time_t currentTime;
+				std::time(&currentTime);
+				std::tm timeInfo;
+				localtime_s(&timeInfo, &currentTime);
+
+				std::string date_str = "";
+				date_str += "/" + std::to_string(timeInfo.tm_year + 1900);
+				date_str += "/" + std::to_string(timeInfo.tm_mon + 1);
+				date_str += "/" + std::to_string(timeInfo.tm_mday);
+				date_str += "/";
+
+				std::string time_str = "";
+				int hour = timeInfo.tm_hour;
+				int minute = timeInfo.tm_min;
+				int second = timeInfo.tm_sec;
+
+				if (hour <= 9) {
+					time_str += "0" + std::to_string(hour) + "-";
+				}
+				else {
+					time_str += std::to_string(hour) + "-";
+				}
+
+				if (minute <= 9) {
+					time_str += "0" + std::to_string(minute) + "-";
+				}
+				else {
+					time_str += std::to_string(minute) + "-";
+				}
+
+				if (second <= 9) {
+					time_str += "0" + std::to_string(second);
+				}
+				else {
+					time_str += std::to_string(second);
+				}
+
+				CString results_path = database_path + date_str.c_str() + m_SNPrompt.m_Serial_Number + "/FCS/" + time_str.c_str() + "/";
+
 				result_path = CStringA(results_path);
 				if (!fs::exists(result_path)) {
 					fs::create_directories(result_path);
@@ -1333,7 +1413,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				myfile.close();
 				*/
 				UpdateData(TRUE);
-				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 				UpdateData(FALSE);
 				if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 				/*
@@ -1476,7 +1556,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(FALSE);
 					*/
 					UpdateData(TRUE);
-					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 					UpdateData(FALSE);
 
 					if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
@@ -1641,7 +1721,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 					//COLOCAR FUNÇÃO MÉDIA
 					UpdateData(TRUE);
-					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number + _T("\r\nRESULTADO: APROVADO");
+					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 					UpdateData(FALSE);
 					reset_square_wave();
 				}
@@ -1652,7 +1732,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);*/
 
-				m_SNPrompt.m_Serial_Number = "";	//FCP mult. freq. Fabrinni
+				//m_SNPrompt.m_Serial_Number = "";	//FCP mult. freq. Fabrinni
 				OnBnClickedButtonFcpAlt();
 			}
 			/*}
@@ -2773,6 +2853,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					num_bursts = results_fcp.bursts;
 
 					if (Freq_Iterator == 0) {	//P/ multiplas frequencia
+						/*
 						std::chrono::system_clock::time_point today = std::chrono::system_clock::now();
 						time_t tt;
 						tt = std::chrono::system_clock::to_time_t(today);
@@ -2788,13 +2869,50 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							else {
 								date_str += str[i + 4];
 							}
+						}*/
+
+						std::time_t currentTime;
+						std::time(&currentTime);
+						std::tm timeInfo;
+						localtime_s(&timeInfo, &currentTime);
+
+						std::string date_str = "";
+						date_str += "/" + std::to_string(timeInfo.tm_year + 1900);
+						date_str += "/" + std::to_string(timeInfo.tm_mon + 1);
+						date_str += "/" + std::to_string(timeInfo.tm_mday);
+						date_str += "/";
+
+						std::string time_str = "";
+						int hour = timeInfo.tm_hour;
+						int minute = timeInfo.tm_min;
+						int second = timeInfo.tm_sec;
+
+						if (hour <= 9) {
+							time_str += "0" + std::to_string(hour) + "-";
+						}
+						else {
+							time_str += std::to_string(hour) + "-";
+						}
+
+						if (minute <= 9) {
+							time_str += "0" + std::to_string(minute) + "-";
+						}
+						else {
+							time_str += std::to_string(minute) + "-";
+						}
+
+						if (second <= 9) {
+							time_str += "0" + std::to_string(second);
+						}
+						else {
+							time_str += std::to_string(second);
 						}
 
 						//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
 						vector<string> splitted_values_aux;
 						vector<string> splitted_values_ref;
-						CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
-						
+						CString fcs_path = database_path + date_str.c_str() + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
+
 						/*
 						CString fcs_path;
 						if (Freq_Iterator != 0)
@@ -2906,7 +3024,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							return;
 						}
 
-						CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str() + "/";
+						CString results_path = database_path + date_str.c_str() + m_SNPrompt.m_Serial_Number + "/FCP/" + time_str.c_str() + "/";
+						//CString results_path = database_path + m_SNPrompt.m_Serial_Number + "/FCP/" + date_str.c_str() + "/";
 						result_path = CStringA(results_path);
 						
 						FCPpath = result_path;
@@ -2963,9 +3082,6 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					//sleep_for(milliseconds(500));
 
 					results_fcp.vds_meas_params.offset = -(max_vds + min_vds)/2;
-					UpdateData(TRUE);
-					m_receive = (std::to_string(max_vds) + "," + std::to_string(min_vds)).c_str();
-					UpdateData(FALSE);
 					results_fcp.vds_meas_params.volts_div = (max_vds)*1.1/8;
 					vds_meas.write_parameters_to_osc(results_fcp.vds_meas_params);
 

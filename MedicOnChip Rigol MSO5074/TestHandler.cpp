@@ -393,7 +393,7 @@ void TestHandler::type_Aquire(std::string type) {
     std::string Aquire_TYPE = ":ACQuire:TYPE " + type + "\n";
     char SCPI_TYPE[256];
     string_to_char_array(Aquire_TYPE,SCPI_TYPE);
-    SendCommand(SCPI_TYPE, true, ":ACQuire:TYPE?", type);
+    SendCommand(SCPI_TYPE, false, ":ACQuire:TYPE?", type);
 };
 //Config trigger, time scale, source and measurement channels and let osciloscope ready to run FCC
 //Output: boolean success/fail flag (true=success)
