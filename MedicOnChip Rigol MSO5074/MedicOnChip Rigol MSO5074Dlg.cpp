@@ -1721,7 +1721,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 					//COLOCAR FUNÇÃO MÉDIA
 					UpdateData(TRUE);
-					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + m_SNPrompt.m_Serial_Number;
+					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + promptFCP;
 					UpdateData(FALSE);
 					reset_square_wave();
 				}
@@ -2554,6 +2554,7 @@ vector <string> customSplit2(string str, char separator) {
 }
 
 bool more_recent(vector<std::string> date, vector<std::string> ref) {
+	/*
 	std::string month = date[0];
 	std::string month_ref = ref[0];
 
@@ -2574,14 +2575,14 @@ bool more_recent(vector<std::string> date, vector<std::string> ref) {
 	int year = stoi(date[5]);
 	int year_ref = stoi(ref[5]);
 	int day = stoi(date[1]);
-	int day_ref = stoi(ref[1]);
-	int hour = stoi(date[2]);
-	int hour_ref = stoi(ref[2]);
-	int min = stoi(date[3]);
-	int min_ref = stoi(ref[3]);
-	int sec = stoi(date[4]);
-	int sec_ref = stoi(ref[4]);
-
+	int day_ref = stoi(ref[1]);*/
+	int hour = stoi(date[0]);
+	int hour_ref = stoi(ref[0]);
+	int min = stoi(date[1]);
+	int min_ref = stoi(ref[1]);
+	int sec = stoi(date[2]);
+	int sec_ref = stoi(ref[2]);
+	/*
 	if (year > year_ref) {
 		return true;
 	}
@@ -2590,7 +2591,7 @@ bool more_recent(vector<std::string> date, vector<std::string> ref) {
 	}
 	if (day > day_ref) {
 		return true;
-	}
+	}*/
 	if (hour > hour_ref) {
 		return true;
 	}
@@ -2871,13 +2872,15 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							}
 						}*/
 
+						promptFCP = m_SNPrompt.m_Serial_Number;
+
 						std::time_t currentTime;
 						std::time(&currentTime);
 						std::tm timeInfo;
 						localtime_s(&timeInfo, &currentTime);
 
 						std::string date_str = "";
-						date_str += "/" + std::to_string(timeInfo.tm_year + 1900);
+						date_str += std::to_string(timeInfo.tm_year + 1900);
 						date_str += "/" + std::to_string(timeInfo.tm_mon + 1);
 						date_str += "/" + std::to_string(timeInfo.tm_mday);
 						date_str += "/";
@@ -2909,6 +2912,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						}
 
 						//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+						vector<string> aux;
 						vector<string> splitted_values_aux;
 						vector<string> splitted_values_ref;
 						CString fcs_path = database_path + date_str.c_str() + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
@@ -2939,14 +2943,16 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 									if (first) {
 										first = false;
 										most_recent = p.path().string();
-										splitted_values_ref = customSplit2(most_recent, '-');
-
+										aux = customSplit2(most_recent, '/');
+										splitted_values_ref = customSplit2(aux[aux.size()-1], '-');
 									}
 									else {
-										splitted_values_aux = customSplit2(p.path().string(), '-');
+										aux = customSplit2(p.path().string(), '/');
+										splitted_values_aux = customSplit2(aux[aux.size() - 1], '-');
 										if (more_recent(splitted_values_aux, splitted_values_ref)) {
 											most_recent = p.path().string();
-											splitted_values_ref = customSplit2(most_recent, '-');
+											aux = customSplit2(most_recent, '/');
+											splitted_values_ref = customSplit2(aux[aux.size() - 1], '-');
 										}
 									}
 								}
