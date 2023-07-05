@@ -23,6 +23,12 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CString m_Serial_Number;
+	CString m_SN_WAFER;
 	afx_msg void OnEnChangeEditSn();
 	afx_msg void OnBnClickedOk();
+	CString m_SN_CHIP;
+	CString m_SN_DISP;
+	CString m_SN_ANALITO;
+	CString m_SN_MEDIDA;
+	CComboBox m_SN_ANALITO_ctrl;
 };

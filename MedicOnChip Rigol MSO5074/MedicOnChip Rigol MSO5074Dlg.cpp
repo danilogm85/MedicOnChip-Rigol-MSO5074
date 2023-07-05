@@ -453,6 +453,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				flag_scale_set = false;
 
 				UpdateData(TRUE);
+				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number;
+				UpdateData(FALSE);
+
+				UpdateData(TRUE);
 				m_receive = "";
 				UpdateData(FALSE);
 
@@ -732,6 +736,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 
 				UpdateData(TRUE);
 				m_receive = "";
+				UpdateData(FALSE);
+
+				UpdateData(TRUE);
+				m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number;
 				UpdateData(FALSE);
 
 				/*
@@ -1411,10 +1419,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 				UpdateData(FALSE);
 				myfile.close();
-				*/
+				
 				UpdateData(TRUE);
 				m_results_display = _T("ENSAIO: FCC\r\nSN: ") + m_SNPrompt.m_Serial_Number;
-				UpdateData(FALSE);
+				UpdateData(FALSE);*/
 				if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 				/*
 				build_log_message("Fim do FCC");
@@ -1554,10 +1562,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);
-					*/
+					
 					UpdateData(TRUE);
 					m_results_display = _T("ENSAIO: FCS\r\nSN: ") + m_SNPrompt.m_Serial_Number;
-					UpdateData(FALSE);
+					UpdateData(FALSE);*/
 
 					if (!flag_run_all) m_SNPrompt.m_Serial_Number = "";
 					/*
@@ -1720,9 +1728,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					system("python.exe FCP_Final.py");
 
 					//COLOCAR FUNÇÃO MÉDIA
-					UpdateData(TRUE);
+					/*UpdateData(TRUE);
 					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + promptFCP;
-					UpdateData(FALSE);
+					UpdateData(FALSE);*/
 					reset_square_wave();
 				}
 
@@ -2849,6 +2857,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 
 					UpdateData(TRUE);
 					m_receive = "";
+					UpdateData(FALSE);
+
+					UpdateData(TRUE);
+					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + promptFCP;
 					UpdateData(FALSE);
 
 					num_bursts = results_fcp.bursts;

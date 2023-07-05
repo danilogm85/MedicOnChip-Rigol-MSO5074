@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by MedicOnChipRigolMSO5074.rc
+// Arquivo de inclusão gerado pelo Microsoft Visual C++.
+// Usado por MedicOnChipRigolMSO5074.rc
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
@@ -44,6 +44,7 @@
 #define IDC_EDIT_Nsd                    1030
 #define IDC_STATIC_Nsd                  1031
 #define IDC_EDIT1                       1037
+#define IDC_EDIT_SN_CHIP                1037
 #define IDC_TEST_RESULTS                1038
 #define IDC_txt                         1040
 #define IDC_BUTTON_FCP                  1041
@@ -52,9 +53,13 @@
 #define IDC_BUTTON1                     1045
 #define NewFCP                          1045
 #define IDC_BUTTON_FCS                  1046
+#define IDC_COMBO_SN_ANALITO            1046
 #define IDC_STATIC1                     1047
+#define IDC_COMBO3                      1047
+#define IDC_COMBO_MEDIDA                1047
 #define IDC_STATIC_FCS_Vgmin            1048
 #define IDC_STATIC_FCS_Vgmax            1049
+#define IDC_COMBO_SN_DISP               1049
 #define IDC_STATIC_FCS_Vgfreq           1050
 #define IDC_EDIT_FCS_Vgmin              1051
 #define IDC_EDIT_FCS_Vgmax              1052
@@ -72,9 +77,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        145
+#define _APS_NEXT_RESOURCE_VALUE        146
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1046
+#define _APS_NEXT_CONTROL_VALUE         1050
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
