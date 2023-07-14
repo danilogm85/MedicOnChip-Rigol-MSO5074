@@ -10,7 +10,7 @@ import configparser
 print("Calculando")
 
 config= configparser.ConfigParser()
-config.read("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositorios\\MedicOnChip-Rigol-MSO5074\\MedicOnChip Rigol MSO5074\\config.ini")
+config.read("config.ini")
 gain_CURRENT=float(config.get('FCC','G_TIA'))
 Cycles_config=int(config.get('FCC','CYCLES'))
 Freq_config=float(config.get('FCC','FREQ'))
@@ -74,7 +74,7 @@ for path, directories, files in os.walk(local):
             "Rlim":Rlim
         }
         validacao=pd.DataFrame(configuracoes, index=[0])
-        validacao.to_csv(path_or_buf=path+ "\\configuracoes"+".csv", sep=";",index=False)
+        validacao.to_csv(path_or_buf=path+ "\\INFO_TESTE_FCC"+".csv", sep=";",index=False)
         data=pd.DataFrame(parametros)        
         #data.to_csv(path_or_buf=path+ "\\resistencia"+"_VG_"+str(result["VG"].mean()) + ".csv", sep=";",index=False)     
         data.to_csv(path_or_buf=path+ "\\resistencia"+".csv", sep=";",index=False)     
