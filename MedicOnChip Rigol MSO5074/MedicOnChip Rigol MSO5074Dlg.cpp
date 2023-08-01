@@ -68,6 +68,7 @@ int Freq_Iterator = 0;
 std::string FCPpath = "";
 bool new_fcp_flag = false;
 CString promptFCP = CString("");
+bool flag_new_firmware = false;
 
 // CAboutDlg dialog used for App About
 
@@ -115,6 +116,7 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	m_pwndGraficoCanal = new CJanelaDoGrafico[m_numCanais];
 
 	char buff[20] = { 0 };
+	vector<std::string> infos;
 
 	//Set High Res and 1M points
 	string_to_char_array(sys_commands.RUN, &buff[0]);
@@ -123,6 +125,17 @@ CMedicOnChipRigolMSO5074Dlg::CMedicOnChipRigolMSO5074Dlg(CWnd* pParent /*=nullpt
 	SendCommand(buff, false, ":ACQuire:MDEPth?", "1.0000E+06");
 	//string_to_char_array(sys_commands.HRES, &buff[0]);
 	//SendCommand(buff);
+	iniciarAquisicao();
+	char trg_status_buff[256] = { 0 };
+	viPrintf(m_vi, "*IDN?\n");
+	viScanf(m_vi, "%t\n", &trg_status_buff);
+	std::string trg_status = trg_status_buff;
+	infos = customSplit2(trg_status, ',');
+	if(infos[3] != "00.01.02.00.03\n"){
+	//if (infos[3] != "00.01.03.02.02\n") {			Para testar com o osciloscÃ³pio com FW novo
+		flag_new_firmware = true;
+	}
+	encerrarAquisicao();
 }
 
 
@@ -280,7 +293,7 @@ int CMedicOnChipRigolMSO5074Dlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;
 
 	// TODO:  Add your specialized creation code here
-	//Cria os gráficos dos canais
+	//Cria os grï¿½ficos dos canais
 	for (int i = 0; i<m_numCanais; i++)
 		m_pwndGraficoCanal[i].Create(NULL, NULL, WS_CHILD | WS_CLIPSIBLINGS, CRect(0, 0, 0, 0), this, NULL, NULL);
 
@@ -308,7 +321,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnSize(UINT nType, int cx, int cy)
 	}
 }
 
-// Trata o botão "Perguntar"
+// Trata o botï¿½o "Perguntar"
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSendAndRead()
 {
 		// TODO: Add your control notification handler code here
@@ -347,7 +360,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSendAndRead()
 		viClose(defaultRM);
 }
 
-// Trata o botão "Comandar"
+// Trata o botï¿½o "Comandar"
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSend()
 {
 	// TODO: Add your control notification handler code here
@@ -379,7 +392,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonSend()
 	viClose(defaultRM);
 }
 
-// Trata o botão "Adquirir"
+// Trata o botï¿½o "Adquirir"
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir()
 {
 	// TODO: Add your control notification handler code here
@@ -413,7 +426,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonAdquirir()
 }
 
 
-// Trata o botão "FCC"
+// Trata o botï¿½o "FCC"
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 {
 	// TODO: Add your control notification handler code here
@@ -447,7 +460,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				}
 
 				//char bufff[24] = { 0 };
-				//reset_square_wave();
+				reset_square_wave();
 
 				flag_fcc = true;
 				flag_scale_set = false;
@@ -537,7 +550,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.v_pp) + "Vpp, Offset de " + std::to_string(results.vds_source_params.v_offset);
 				//parameters_log = parameters_log + ", " + std::to_string(results.vds_source_params.freq) + " Hz";
 				/*
-				build_log_message("Configurando osciloscópio para FCC");
+				build_log_message("Configurando osciloscï¿½pio para FCC");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
@@ -593,7 +606,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				vds_source.stop(1);
 				vg_source.stop(2);
 
-				//Liga canais de medição
+				//Liga canais de mediï¿½ï¿½o
 				vds_meas.on();
 				current_meas.on();
 				vg_meas.on();
@@ -607,7 +620,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//SendCommand(buff);
 
 
-				/*Isso não funciona porque o loop de tempo indeterminado trava a interface.Vamos ter que fazer por TIMER
+				/*Isso nï¿½o funciona porque o loop de tempo indeterminado trava a interface.Vamos ter que fazer por TIMER
 				while (tester.read_trigger_status() != "RUN") {
 					UpdateData(TRUE);
 					m_receive = "espera";
@@ -641,7 +654,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				//Ajusta a base de tempo horizontal
 				viPrintf(m_vi, ":TIMEbase:SCALe 200E-3\n");
 
-				//Ajusta a saída do gerador de sinais 1
+				//Ajusta a saï¿½da do gerador de sinais 1
 				//viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion RAMP\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion:RAMP:SYMMetry 50\n");
@@ -650,7 +663,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				viPrintf(m_vi, ":SOURce1:FREQuency 2\n");
 				viPrintf(m_vi, ":OUTPut1:IMPedance OMEG\n");
 				
-				//Ajusta a saída do gerador de sinais 2
+				//Ajusta a saï¿½da do gerador de sinais 2
 				viPrintf(m_vi, ":SOURce2:TYPE NONE\n");
 				viPrintf(m_vi, ":SOURce2:FUNCtion DC\n");
 				viPrintf(m_vi, ":SOURce2:VOLTage:OFFSet 100E-3\n");
@@ -757,14 +770,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				sprintf_s(temp, 256, ":TIMEbase:SCALe %.0e\n", 0.5 * 1 / m_FCSParametersDlg.m_Vgfreq);
 				viPrintf(m_vi, temp);
 
-				//Ajusta a saída do gerador de sinais 1 (Vsd)
+				//Ajusta a saï¿½da do gerador de sinais 1 (Vsd)
 				viPrintf(m_vi, ":SOURce1:TYPE NONE\n");
 				viPrintf(m_vi, ":SOURce1:FUNCtion DC\n");
 				sprintf_s(temp, 256, ":SOURce1:VOLTage:OFFSet %f\n", m_FCSParametersDlg.m_Vsd);
 				viPrintf(m_vi, temp);
 				viPrintf(m_vi, ":OUTPut1:IMPedance OMEG\n");
 
-				//Ajusta a saída do gerador de sinais 2 (Vg)
+				//Ajusta a saï¿½da do gerador de sinais 2 (Vg)
 				viPrintf(m_vi, ":SOURce2:TYPE NONE\n");
 				viPrintf(m_vi, ":SOURce2:FUNCtion RAMP\n");
 				viPrintf(m_vi, ":SOURce2:FUNCtion:RAMP:SYMMetry 50\n");
@@ -791,12 +804,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				viPrintf(m_vi, ":OUTPut2:STATe ON\n");
 				*/
 				/*
-				build_log_message("Configurando osciloscópio para FCS");
+				build_log_message("Configurando osciloscï¿½pio para FCS");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
-				//reset_square_wave();
+				reset_square_wave();
 				flag_fcs = true;
 				flag_scale_set = false;
 
@@ -865,7 +878,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 					fs::create_directories(result_path);
 				}
 				CopyConfig();
-				//Mostra os gráficos
+				//Mostra os grï¿½ficos
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
@@ -908,7 +921,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				vds_source.stop(1);
 				vg_source.stop(2);
 
-				//Liga canais de medição
+				//Liga canais de mediï¿½ï¿½o
 				vds_meas.on();
 				current_meas.on();
 				vg_meas.on();
@@ -924,7 +937,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 
 
 				//Ativa o timer
-				SetTimer(ID_TIMER_FCS, 1000, NULL);
+				if (flag_new_firmware == false){
+					SetTimer(ID_TIMER_FCS, 1000, NULL);
+				}
+				else{
+					SetTimer(ID_TIMER_FCS, results_fcs.t_scale*10*1.5*1000, NULL);
+				}
 			}
 		}
 	}
@@ -982,7 +1000,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(FALSE);
 				GetDlgItem(IDC_BUTTON_FCP)->SetWindowText(_T("Encerrar"));
 				/*
-				build_log_message("Configurando osciloscópio para FCP");
+				build_log_message("Configurando osciloscï¿½pio para FCP");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
@@ -1008,11 +1026,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 					}
 				}
 
-				//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+				//Verifica se VG_MIN e VG_MAX jï¿½ foram obtidos para esse SN e pega eles
 				vector<string> splitted_values_aux;
 				vector<string> splitted_values_ref;
 				CString fcs_path = database_path + m_SNPrompt.m_Serial_Number + "/FCS/";	//CString por causa do SN
-				std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+				std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que ï¿½ string, porque a funï¿½ï¿½o de baixo sï¿½ aceita string
 				std::filesystem::path caminho{ vg_values_path };
 
 				if (fs::exists(vg_values_path)) {
@@ -1056,7 +1074,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 					}
 					else {
 						UpdateData(TRUE);
-						m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
+						m_receive = "O ultimo FCS desse chip nï¿½o calculou os valores de Vg_max e Vg_min para realizar o FCP";
 						UpdateData(FALSE);
 
 						encerrarAquisicao();
@@ -1080,7 +1098,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				}
 				else {
 					UpdateData(TRUE);
-					m_receive = "Esse chip ainda não foi testado no FCS";
+					m_receive = "Esse chip ainda nï¿½o foi testado no FCS";
 					UpdateData(FALSE);
 
 					encerrarAquisicao();
@@ -1113,7 +1131,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 					fs::create_directories(result_path);
 				}
 
-				//Mostra os gráficos
+				//Mostra os grï¿½ficos
 				for (int i = 0; i < m_numCanais; i++)
 					m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
@@ -1150,7 +1168,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcp()
 				vds_source.stop(1);
 				vg_source.stop(2);
 
-				//Liga canais de medição
+				//Liga canais de mediï¿½ï¿½o
 				vds_meas.on();
 				//current_meas.on();
 				vg_meas.on();
@@ -1236,7 +1254,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			if (vg_index < results.vg_vector.size()) {
 				if (burst_count < num_bursts) {
 					/*
-					std::string msg = "Aquisição encerrada, BURST " + std::to_string(burst_count) + ", Vg = " + std::to_string(results.vg_vector[vg_index]);
+					std::string msg = "Aquisiï¿½ï¿½o encerrada, BURST " + std::to_string(burst_count) + ", Vg = " + std::to_string(results.vg_vector[vg_index]);
 					build_log_message(msg);
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
@@ -1261,7 +1279,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					std::string path = result_path + "vg_" + vg_str;
 					if (!fs::exists(path)) {
 						/*
-						build_log_message("Criando diretórios");
+						build_log_message("Criando diretï¿½rios");
 						UpdateData(TRUE);
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);*/
@@ -1313,7 +1331,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					burst_count++;
 					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 					{/*
-						build_log_message("Preparando próxima aquisição");
+						build_log_message("Preparando prï¿½xima aquisiï¿½ï¿½o");
 						UpdateData(TRUE);
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);
@@ -1334,7 +1352,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					vg_index++;
 					if (vg_index < results.vg_vector.size()) {
 						/*
-						build_log_message("Iniciando medições para o próximo Vg");
+						build_log_message("Iniciando mediï¿½ï¿½es para o prï¿½ximo Vg");
 						UpdateData(TRUE);
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);
@@ -1354,7 +1372,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 			}
 			else {/*
-				build_log_message("Aquisições finalizadas, desligando canais");
+				build_log_message("Aquisiï¿½ï¿½es finalizadas, desligando canais");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
@@ -1363,21 +1381,21 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				vg_source.stop(2);
 				vds_source.stop(1);
 				/*
-				build_log_message("Chamando Python para análise dos dados");
+				build_log_message("Chamando Python para anï¿½lise dos dados");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
-				//COLOCAR FUNÇÃO MÉDIA
+				//COLOCAR FUNï¿½ï¿½O Mï¿½DIA
 				std::ofstream myfile;
 				myfile.open("diretorio.csv");
 				myfile << result_path << "\n";
 				myfile.close();
 
-				//const std::string &path = "C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py";
+				//const std::string &path = "C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositï¿½rio Fabrinni\\ResistenciaCanal.py";
 				//LPCTSTR blabla = path.c_str();
 
-				//system("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositório Fabrinni\\ResistenciaCanal.py");
+				//system("C:\\Users\\Mediconchip.DESKTOP-K5I25D1\\Desktop\\Repositï¿½rio Fabrinni\\ResistenciaCanal.py");
 				system("python.exe FCC_Current_SourceFinal.py");
 
 				/*
@@ -1437,18 +1455,30 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			}
 		}
 		else {/*
-			build_log_message("Aquisição em progresso");
+			build_log_message("Aquisiï¿½ï¿½o em progresso");
 			UpdateData(TRUE);
 			m_receive = tester.log_string.c_str();
 			UpdateData(FALSE);*/
 		}
 		break;
 	case ID_TIMER_FCS:
+
+		if(flag_new_firmware && trg_status != "STOP\n"){
+			KillTimer(ID_TIMER_FCS);
+			SetTimer(ID_TIMER_FCS, 1000, NULL);
+			string_to_char_array(sys_commands.STOP, &buff[0]);
+			SendCommand(buff);
+			sleep_for(milliseconds(1000));
+			viPrintf(m_vi, ":TRIGger:STATus?\n");
+			viScanf(m_vi, "%t\n", &trg_status_buff);
+			trg_status = trg_status_buff;
+		}
+
 		if (trg_status == "STOP\n") {
 			//if (vg_index < results.vg_vector.size()) {
 				if (burst_count < num_bursts) {
 					/*
-					std::string msg = "Aquisição encerrada, BURST: " + std::to_string(burst_count);
+					std::string msg = "Aquisiï¿½ï¿½o encerrada, BURST: " + std::to_string(burst_count);
 					build_log_message(msg);
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
@@ -1458,7 +1488,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					vg_source.stop(2);
 					std::string path = result_path;
 					if (!fs::exists(path)) {/*
-						build_log_message("Criando diretórios");
+						build_log_message("Criando diretï¿½rios");
 						UpdateData(TRUE);
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);*/
@@ -1504,7 +1534,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					burst_count++;
 					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 					{/*
-						build_log_message("Preparando próxima aquisição");
+						build_log_message("Preparando prï¿½xima aquisiï¿½ï¿½o");
 						UpdateData(TRUE);
 						m_receive = tester.log_string.c_str();
 						UpdateData(FALSE);
@@ -1520,7 +1550,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					}
 				}
 				else {/*
-					build_log_message("Aquisições finalizadas, desligando canais");
+					build_log_message("Aquisiï¿½ï¿½es finalizadas, desligando canais");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);
@@ -1544,9 +1574,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					//vg_index = 0;
 					vg_source.stop(2);
 					vds_source.stop(1);
-					//COLOCAR FUNÇÃO MÉDIA
+					//COLOCAR FUNï¿½ï¿½O Mï¿½DIA
 					/*
-					build_log_message("Chamando Python para análise dos dados");
+					build_log_message("Chamando Python para anï¿½lise dos dados");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);
@@ -1582,7 +1612,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			//}
 		}
 		else {/*
-			build_log_message("Aquisição em progresso");
+			build_log_message("Aquisiï¿½ï¿½o em progresso");
 			UpdateData(TRUE);
 			m_receive = tester.log_string.c_str();
 			UpdateData(FALSE);*/
@@ -1613,7 +1643,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 		if (stopped || flag_scale_set_status) {
 			if (burst_count < num_bursts) {
 				/*
-				std::string msg = "Aquisição encerrada, BURST " + std::to_string(burst_count);
+				std::string msg = "Aquisiï¿½ï¿½o encerrada, BURST " + std::to_string(burst_count);
 				build_log_message(msg);
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
@@ -1624,7 +1654,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				//std::string path = result_path;
 				std::string path = FCPpath;
 				if (!fs::exists(path)) {/*
-					build_log_message("Criando diretórios");
+					build_log_message("Criando diretï¿½rios");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);*/
@@ -1674,7 +1704,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 				if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
 				{/*
-					build_log_message("Preparando próxima aquisição");
+					build_log_message("Preparando prï¿½xima aquisiï¿½ï¿½o");
 					UpdateData(TRUE);
 					m_receive = tester.log_string.c_str();
 					UpdateData(FALSE);*/
@@ -1691,7 +1721,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				}
 			}
 			else {/*
-				build_log_message("Aquisições finalizadas, desligando canais");
+				build_log_message("Aquisiï¿½ï¿½es finalizadas, desligando canais");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);*/
@@ -1703,7 +1733,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				vg_source.stop(2);
 				//vds_source.stop(1);
 				/*
-				build_log_message("Chamando Python para análise dos dados");
+				build_log_message("Chamando Python para anï¿½lise dos dados");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
@@ -1727,7 +1757,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 					system("python.exe FCP_Final.py");
 
-					//COLOCAR FUNÇÃO MÉDIA
+					//COLOCAR FUNï¿½ï¿½O Mï¿½DIA
 					/*UpdateData(TRUE);
 					m_results_display = _T("ENSAIO: FCP\r\nSN: ") + promptFCP;
 					UpdateData(FALSE);*/
@@ -1745,7 +1775,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 			}
 			/*}
 			else {
-				build_log_message("Aquisição em progresso");
+				build_log_message("Aquisiï¿½ï¿½o em progresso");
 				UpdateData(TRUE);
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
@@ -1769,27 +1799,27 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 
 
 
-// Abre a interface de comunicação com o osciloscópio
+// Abre a interface de comunicaï¿½ï¿½o com o osciloscï¿½pio
 bool CMedicOnChipRigolMSO5074Dlg::iniciarAquisicao()
 {
 	// TODO: Add your implementation code here.
 
-	//Abre a comunicação USB
+	//Abre a comunicaï¿½ï¿½o USB
 	viOpenDefaultRM(&m_defaultRM);
 	if (VI_SUCCESS != viFindRsrc(m_defaultRM, "USB?*", &m_list, &m_nmatches, m_matches)) {
 		viClose(m_defaultRM);
-		AfxMessageBox(_T("Erro: USB não encontrada"));
+		AfxMessageBox(_T("Erro: USB nï¿½o encontrada"));
 		return false;
 	}
 
-	//Abre a comunicação com o osciloscópio
+	//Abre a comunicaï¿½ï¿½o com o osciloscï¿½pio
 	if (VI_SUCCESS != viOpen(m_defaultRM, m_matches, VI_NULL, VI_NULL, &m_vi)) {
 		viClose(m_defaultRM);
-		AfxMessageBox(_T("Erro: Osciloscópio não encontrado"));
+		AfxMessageBox(_T("Erro: Osciloscï¿½pio nï¿½o encontrado"));
 		return false;
 	}
 
-	// Ajusta a aquisição
+	// Ajusta a aquisiï¿½ï¿½o
 	char temp[200];
 	for (int i = 1; i <= m_numCanais; i++) {
 		sprintf_s(temp, 200, ":CHANnel%d:DISPlay ON\n", i);
@@ -1808,7 +1838,7 @@ bool CMedicOnChipRigolMSO5074Dlg::iniciarAquisicao()
 	return true;
 }
 
-// Encerra a interface de comunicação
+// Encerra a interface de comunicaï¿½ï¿½o
 bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 {
 	// TODO: Add your implementation code here.
@@ -1861,19 +1891,19 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	viPrintf(m_vi, temp);
 	delete[] temp;
 
-	//Determina a resolução horizontal
+	//Determina a resoluï¿½ï¿½o horizontal
 	//viPrintf(m_vi, ":WAVeform:XINCrement?\n");
 	viPrintf(m_vi, ":ACQuire:SRATe?\n");
 	viRead(m_vi, buf, cnt, &readcnt);
 	temp = new char[readcnt];
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
-	Ts = 1/atof(temp);		//Período de amostragem
+	Ts = 1/atof(temp);		//Perï¿½odo de amostragem
 	/*
 	std::string srate_path = "";
 	for (int i = (mean_path.length() - 1); i > 0;i--) {	//Acha a ultima barra
 		if (mean_path[i] ==  '/') {
-			for (int j = 0; j < (i+1); j++) {	//Copia string até a barra, obtendo o path do resultado do teste
+			for (int j = 0; j < (i+1); j++) {	//Copia string atï¿½ a barra, obtendo o path do resultado do teste
 				srate_path[j] = mean_path[j];
 			}
 			break;
@@ -1891,7 +1921,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	flag_time = false;
 	for (int canal = 1; canal < 4; canal++) {
 		auto iterador = std::find(channels.begin(), channels.end(), canal);
-		//Só mede se o canal estiver selecionado no vetor channels
+		//Sï¿½ mede se o canal estiver selecionado no vetor channels
 		if (iterador != channels.end()) {
 			//Seleciona o canal
 			temp = new char[256];
@@ -1899,24 +1929,24 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 			viPrintf(m_vi, temp);
 			delete[] temp;
 
-			//Determina a resolução vertical
+			//Determina a resoluï¿½ï¿½o vertical
 			viPrintf(m_vi, ":WAVeform:YINCrement?\n");
 			viRead(m_vi, buf, cnt, &readcnt);
 			temp = new char[readcnt];
 			for (int i = 0; i < readcnt; i++)
 				temp[i] = buf[i];
-			deltaV = atof(temp);	//Resolução vertical
+			deltaV = atof(temp);	//Resoluï¿½ï¿½o vertical
 			delete[] temp;
 
-			//Lê os dados
+			//Lï¿½ os dados
 			viPrintf(m_vi, ":WAVeform:DATA?\n");
 			viRead(m_vi, buf, cnt, &readcnt);
-			temp = new char[2];					// Obtém o parâmetro N do cabeçalho
+			temp = new char[2];					// Obtï¿½m o parï¿½metro N do cabeï¿½alho
 			sprintf_s(temp, 2, "%c", buf[1]);
 			N = atoi(temp);
 			delete[] temp;
 
-			temp = new char[N + 1];				// Obtém o tamanho do buffer de dados
+			temp = new char[N + 1];				// Obtï¿½m o tamanho do buffer de dados
 			for (int i = 0; i < N; i++)
 				temp[i] = buf[2 + i];
 			temp[N] = '\n';
@@ -1956,7 +1986,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 						}
 					}
 					sinal_it++;
-					aux = -1;	//O aux é incrementado logo que sai do if, então tem que colcoar -1 para ele zerar daqui 2 linhas
+					aux = -1;	//O aux ï¿½ incrementado logo que sai do if, entï¿½o tem que colcoar -1 para ele zerar daqui 2 linhas
 					soma = 0;
 				}
 				aux++;
@@ -1994,7 +2024,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 	}
 }
 
-// Lê os dados do canal especificado e imprime no gráfico
+// Lï¿½ os dados do canal especificado e imprime no grï¿½fico
 void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int bucket_size, std::string bin_file_path)
 {
 	ViByte buf[1000000];		//unsigned char
@@ -2014,33 +2044,33 @@ void CMedicOnChipRigolMSO5074Dlg::leDadosCanal(unsigned int canal, unsigned int 
 	viPrintf(m_vi, temp);
 	delete[] temp;
 
-	//Determina a resolução horizontal
+	//Determina a resoluï¿½ï¿½o horizontal
 	viPrintf(m_vi, ":WAVeform:XINCrement?\n");
 	viRead(m_vi, buf, cnt, &readcnt);
 	temp = new char[readcnt];
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
-	Ts = atof(temp);		//Período de amostragem
+	Ts = atof(temp);		//Perï¿½odo de amostragem
 	delete[] temp;
 
-	//Determina a resolução vertical
+	//Determina a resoluï¿½ï¿½o vertical
 	viPrintf(m_vi, ":WAVeform:YINCrement?\n");
 	viRead(m_vi, buf, cnt, &readcnt);
 	temp = new char[readcnt];
 	for (int i = 0; i < readcnt; i++)
 		temp[i] = buf[i];
-	deltaV = atof(temp);	//Resolução vertical
+	deltaV = atof(temp);	//Resoluï¿½ï¿½o vertical
 	delete[] temp;
 
-	//Lê os dados
+	//Lï¿½ os dados
 	viPrintf(m_vi, ":WAVeform:DATA?\n");
 	viRead(m_vi, buf, cnt, &readcnt);
-	temp = new char[2];					// Obtém o parâmetro N do cabeçalho
+	temp = new char[2];					// Obtï¿½m o parï¿½metro N do cabeï¿½alho
 	sprintf_s(temp, 2, "%c", buf[1]);
 	N = atoi(temp);
 	delete[] temp;
 
-	temp = new char[N + 1];				// Obtém o tamanho do buffer de dados
+	temp = new char[N + 1];				// Obtï¿½m o tamanho do buffer de dados
 	for (int i = 0; i < N; i++)
 		temp[i] = buf[2 + i];
 	temp[N] = '\n';
@@ -2168,7 +2198,7 @@ bool SendCommand(std::string _command, bool check_response_loop, std::string che
 			sleep_for(milliseconds(20));
 			loop_count++;
 			if (loop_count == COMM_LOOP_LIMIT) {
-				AfxMessageBox(_T("Erro: Problema de comunicação com o osciloscópio. Reconecte a USB."));
+				AfxMessageBox(_T("Erro: Problema de comunicaï¿½ï¿½o com o osciloscï¿½pio. Reconecte a USB."));
 				viClose(vi);
 				sleep_for(milliseconds(20));
 				viClose(defaultRM);
@@ -2452,18 +2482,18 @@ void Files_Path_in_Directory(std::filesystem::path caminho)
 	}
 	delete[] buffer;
 }
-//Função que lê os arquivos .csv de um diretório, calcula a média das curvas
+//Funï¿½ï¿½o que lï¿½ os arquivos .csv de um diretï¿½rio, calcula a mï¿½dia das curvas
 //associadas, escreve os dados resultantes em um novo arquivo .csv
-//parâmetro: objeto path da biblioteca fylesistem que contém o endereço de onde
+//parï¿½metro: objeto path da biblioteca fylesistem que contï¿½m o endereï¿½o de onde
 //devemos manipular os dados
 
 void media_CSV_Osciloscopio(std::filesystem::path caminho) {
 
-	int mean = 0;    //iterador p/ calcular o número de arquivos acessados
-	int lines = get_File_Lines(caminho);    //armazena o número de linhas de um arquivo
+	int mean = 0;    //iterador p/ calcular o nï¿½mero de arquivos acessados
+	int lines = get_File_Lines(caminho);    //armazena o nï¿½mero de linhas de um arquivo
 	auto buffer = new double[lines - 1][csv_columns]; //buffer de dados da de dados dos arquivos;
 
-	//(lines-1) Uma das linhas é o cabeçalho dos dados, "precisa-lá" exluir	
+	//(lines-1) Uma das linhas ï¿½ o cabeï¿½alho dos dados, "precisa-lï¿½" exluir	
 	//loop para inicializar a matriz com zeros em todos os indices
 	for (int i = 0; i < (lines - 1); i++)
 	{
@@ -2471,11 +2501,11 @@ void media_CSV_Osciloscopio(std::filesystem::path caminho) {
 			buffer[i][j] = 0;
 		}
 	}
-	//loop que percorre todos arquivos de um diretório, acessa eles e acumula
+	//loop que percorre todos arquivos de um diretï¿½rio, acessa eles e acumula
 	// a soma deles em um Buffer
 	for (const auto& file : std::filesystem::directory_iterator(caminho)) {
 
-		//acessar arquivo de um endereço no diretório
+		//acessar arquivo de um endereï¿½o no diretï¿½rio
 		std::ifstream arquivo(file.path(), ios::in);
 		mean++;
 
@@ -2750,11 +2780,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt()
 			}
 			*/
 
-			//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+			//Verifica se VG_MIN e VG_MAX jï¿½ foram obtidos para esse SN e pega eles
 		vector<string> splitted_values_aux;
 		vector<string> splitted_values_ref;
 		CString fcc_path = database_path + m_SNPrompt.m_Serial_Number + "/FCC/";	//CString por causa do SN
-		std::string fcc_path_str = CStringA(fcc_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+		std::string fcc_path_str = CStringA(fcc_path);	//Jogando na result_path, que ï¿½ string, porque a funï¿½ï¿½o de baixo sï¿½ aceita string
 		//std::filesystem::path caminho{ fcc_path_str };
 
 		if (fs::exists(fcc_path_str)) {
@@ -2788,7 +2818,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcsAlt()
 		}
 		else {
 			UpdateData(TRUE);
-			m_receive = "Esse chip ainda não foi testado no FCC";
+			m_receive = "Esse chip ainda nï¿½o foi testado no FCC";
 			UpdateData(FALSE);
 			return;
 		}
@@ -2923,7 +2953,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							time_str += std::to_string(second);
 						}
 
-						//Verifica se VG_MIN e VG_MAX já foram obtidos para esse SN e pega eles
+						//Verifica se VG_MIN e VG_MAX jï¿½ foram obtidos para esse SN e pega eles
 						vector<string> aux;
 						vector<string> splitted_values_aux;
 						vector<string> splitted_values_ref;
@@ -2943,7 +2973,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 							fcs_path.Append(database_path + m_SNPrompt.m_Serial_Number + "/FCS/");	//CString por causa do SN
 						}*/
 					
-						std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que é string, porque a função de baixo só aceita string
+						std::string vg_values_path = CStringA(fcs_path);	//Jogando na result_path, que ï¿½ string, porque a funï¿½ï¿½o de baixo sï¿½ aceita string
 						std::filesystem::path caminho{ vg_values_path };
 
 						if (fs::exists(vg_values_path)) {
@@ -2986,10 +3016,38 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 								results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
 								results_fcp.vg_meas_params.volts_div = max / 4;
 
+								if (results_fcp.vg_source_params.v_pp < 0.001) {
+									UpdateData(TRUE);
+									m_receive = "O degrau de Vg e' menor que 1mV, isso vai travar o teste. Abortando...";
+									UpdateData(FALSE);
+
+									encerrarAquisicao();
+									for (int i = 0; i < m_numCanais; i++) {
+										m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+										m_pwndGraficoCanal[i].limpaGrafico();
+									}
+
+									GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
+									GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+									if (flag_run_all) {
+										flag_fcp = false;
+										OnBnClickedButtonRunall();
+									}
+									return;
+								}
+
 							}
 							else {
 								UpdateData(TRUE);
-								m_receive = "O ultimo FCS desse chip não calculou os valores de Vg_max e Vg_min para realizar o FCP";
+								m_receive = "O ultimo FCS desse chip nï¿½o calculou os valores de Vg_max e Vg_min para realizar o FCP";
 								UpdateData(FALSE);
 
 								encerrarAquisicao();
@@ -3017,7 +3075,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						}
 						else {
 							UpdateData(TRUE);
-							m_receive = "Esse chip ainda não foi testado no FCS";
+							m_receive = "Esse chip ainda nï¿½o foi testado no FCS";
 							UpdateData(FALSE);
 
 							encerrarAquisicao();
@@ -3053,11 +3111,11 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 						}
 
 						CopyConfig();
-						std::ifstream inputFile(vg_values_path, std::ios::binary); // Abre o arquivo de origem em modo binário
-						std::ofstream outputFile(result_path + "vg_values.ini", std::ios::binary); // Abre o arquivo de destino em modo binário
-						outputFile << inputFile.rdbuf(); // Copia o conteúdo do arquivo de origem para o arquivo de destino
+						std::ifstream inputFile(vg_values_path, std::ios::binary); // Abre o arquivo de origem em modo binï¿½rio
+						std::ofstream outputFile(result_path + "vg_values.ini", std::ios::binary); // Abre o arquivo de destino em modo binï¿½rio
+						outputFile << inputFile.rdbuf(); // Copia o conteï¿½do do arquivo de origem para o arquivo de destino
 					}
-					//Mostra os gráficos
+					//Mostra os grï¿½ficos
 					for (int i = 0; i < m_numCanais; i++)
 						m_pwndGraficoCanal[i].ShowWindow(SW_SHOW);
 
@@ -3083,14 +3141,14 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 					//Set trigger
 					trigger_parameters.source = "CHAN3";
 					tester.send_trigger_parameters(trigger_parameters);
-					//tester.triggerMode_FCP();//qlq coisa vai nessa função e muda trigger para Normal
+					//tester.triggerMode_FCP();//qlq coisa vai nessa funï¿½ï¿½o e muda trigger para Normal
 					vds_source.write_parameters_to_osc(results_fcp.vds_source_params);
 					vg_source.write_parameters_to_osc(results_fcp.vg_source_params);
 					
 					string_to_char_array(sys_commands.RUN, &buff[0]);
 					SendCommand(buff);
 
-				//Medida rápida para definir escala vertical
+				//Medida rï¿½pida para definir escala vertical
 					results_fcp.AquireType = "HRES";
 					tester.type_Aquire(results_fcp.AquireType);
 					delay_time = 1000;
@@ -3144,7 +3202,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 				vds_source.stop(1);
 				vg_source.stop(2);
 
-				//Liga canais de medição
+				//Liga canais de mediï¿½ï¿½o
 				vds_meas.on();
 				//current_meas.on();
 				vg_meas.on();
@@ -3175,7 +3233,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		KillTimer(ID_TIMER_FCP);
 
 		vg_source.stop(2);
-		//vds_source.stop(1);
+		vds_source.stop(1);
 		burst_count = 0;
 		//stopped = false;
 		//started = false;
@@ -3206,12 +3264,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
 
-		if (Freq_Iterator < 1) {
+		if (Freq_Iterator < 1 && flag_run_all) {
 			Freq_Iterator++;
 			OnBnClickedNewfcp();
-
 		}
 		else {
+			reset_square_wave();
 			Freq_Iterator = 0;
 			new_fcp_flag = false;
 			promptFCP = CString("");
@@ -3247,7 +3305,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 		flag_run_all = false;
 		if (flag_fcc) OnBnClickedButtonFCC();
 		else if (flag_fcs) OnBnClickedButtonFCS();
-		else if (flag_fcp) OnBnClickedButtonFcpAlt();
+		else if (flag_fcp) {
+			m_bAquisicaoAtiva = true;
+			OnBnClickedButtonFcpAlt();
+		}
 
 		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
@@ -3268,8 +3329,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp()
 
 void CMedicOnChipRigolMSO5074Dlg::CopyConfig()
 {
-	std::ifstream inputFile("config.ini", std::ios::binary); // Abre o arquivo de origem em modo binário
-	std::ofstream outputFile(result_path+"config.ini", std::ios::binary); // Abre o arquivo de destino em modo binário
-	outputFile << inputFile.rdbuf(); // Copia o conteúdo do arquivo de origem para o arquivo de destino
+	std::ifstream inputFile("config.ini", std::ios::binary); // Abre o arquivo de origem em modo binï¿½rio
+	std::ofstream outputFile(result_path+"config.ini", std::ios::binary); // Abre o arquivo de destino em modo binï¿½rio
+	outputFile << inputFile.rdbuf(); // Copia o conteï¿½do do arquivo de origem para o arquivo de destino
 	return;
 }
