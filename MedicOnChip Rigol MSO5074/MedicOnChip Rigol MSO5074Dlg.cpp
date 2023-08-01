@@ -460,7 +460,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCC()
 				}
 
 				//char bufff[24] = { 0 };
-				//reset_square_wave();
+				reset_square_wave();
 
 				flag_fcc = true;
 				flag_scale_set = false;
@@ -809,7 +809,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFCS()
 				m_receive = tester.log_string.c_str();
 				UpdateData(FALSE);
 				*/
-				//reset_square_wave();
+				reset_square_wave();
 				flag_fcs = true;
 				flag_scale_set = false;
 
@@ -3016,6 +3016,34 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 								results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
 								results_fcp.vg_meas_params.volts_div = max / 4;
 
+								if (results_fcp.vg_source_params.v_pp < 0.001) {
+									UpdateData(TRUE);
+									m_receive = "O degrau de Vg e' menor que 1mV, isso vai travar o teste. Abortando...";
+									UpdateData(FALSE);
+
+									encerrarAquisicao();
+									for (int i = 0; i < m_numCanais; i++) {
+										m_pwndGraficoCanal[i].ShowWindow(SW_HIDE);
+										m_pwndGraficoCanal[i].limpaGrafico();
+									}
+
+									GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_ADQUIRIR)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCC)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCS)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCS_ALT)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_RUNALL)->EnableWindow(TRUE);
+									GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
+									GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
+									if (flag_run_all) {
+										flag_fcp = false;
+										OnBnClickedButtonRunall();
+									}
+									return;
+								}
+
 							}
 							else {
 								UpdateData(TRUE);
@@ -3205,7 +3233,7 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		KillTimer(ID_TIMER_FCP);
 
 		vg_source.stop(2);
-		//vds_source.stop(1);
+		vds_source.stop(1);
 		burst_count = 0;
 		//stopped = false;
 		//started = false;
@@ -3236,12 +3264,12 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->SetWindowText(_T("FCP"));
 
-		if (Freq_Iterator < 1) {
+		if (Freq_Iterator < 1 && flag_run_all) {
 			Freq_Iterator++;
 			OnBnClickedNewfcp();
-
 		}
 		else {
+			reset_square_wave();
 			Freq_Iterator = 0;
 			new_fcp_flag = false;
 			promptFCP = CString("");
@@ -3277,7 +3305,10 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 		flag_run_all = false;
 		if (flag_fcc) OnBnClickedButtonFCC();
 		else if (flag_fcs) OnBnClickedButtonFCS();
-		else if (flag_fcp) OnBnClickedButtonFcpAlt();
+		else if (flag_fcp) {
+			m_bAquisicaoAtiva = true;
+			OnBnClickedButtonFcpAlt();
+		}
 
 		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
