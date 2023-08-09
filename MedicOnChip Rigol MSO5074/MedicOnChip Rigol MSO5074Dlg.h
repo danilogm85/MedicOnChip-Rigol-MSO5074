@@ -9,6 +9,8 @@
 #include "FCCParametersDlg.h"
 #include "FCSParametersDlg.h"
 #include "SN_PROMPT.h"
+#include "GoNoGo.h"
+#include "GoNoGo_Confirm.h"
 #include "mini/ini.h"
 //#include "TestHandler.h"
 #include <string>
@@ -69,6 +71,8 @@ protected:
 	CFCCParametersDlg m_FCCParametersDlg;
 	CFCSParametersDlg m_FCSParametersDlg;
 	SN_PROMPT m_SNPrompt;
+	GoNoGo m_GoNoGo;
+	GoNoGo_Confirm m_GoNoGo_Confirm;
 
 public:
 	afx_msg void OnBnClickedButtonSendAndRead();
@@ -82,7 +86,7 @@ protected:
 	bool iniciarAquisicao();
 	bool encerrarAquisicao();
 	void leDadosCanal(unsigned int, unsigned int bucket_size, std::string bin_file_path);
-	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path, float offset=0);
+	void Measure_and_save(const std::vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path, std::string mean_path, const std::vector <float>& offsets);
 	void CMedicOnChipRigolMSO5074Dlg::CopyConfig();
 public:
 	afx_msg void OnBnClickedButtonFCC();

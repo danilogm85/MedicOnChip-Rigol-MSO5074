@@ -47,7 +47,7 @@ for path, directories, files in os.walk(local):
         print(a)
         b=model.intercept_
         print(b)
-        xx=np.arange(-2e-5,3e-5,1e-6)
+        xx=np.arange(-6e-6,6e-6,0.1e-6)
         fig, ax=plt.subplots()
         ax.scatter(x,y)
         ax.plot(xx,a*xx+b, color="red")

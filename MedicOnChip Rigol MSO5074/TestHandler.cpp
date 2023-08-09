@@ -176,7 +176,8 @@ FCS_parameters TestHandler::get_fcs_parameters() {
     //Warning: the volts/div result may not be acepted by the osciloscope, because there are specific values for it
     read_values = ini.get("FCS").get("MAX_VDS_EXPECT");
     //parameters.current_meas_params.volts_div = stof(read_values) * (parameters.g_tia) / 4; //8 divisions
-    parameters.vds_meas_params.volts_div = stof(read_values); //8 divisions
+    parameters.vds_meas_params.volts_div = stof(read_values)/3.5; //8 divisions
+    parameters.vds_meas_params.offset = -3.5 * parameters.vds_meas_params.volts_div;
 
     //VDS measurement parameters
     //parameters.vds_meas_params.volts_div = parameters.vds_source_params.v_offset / 2;

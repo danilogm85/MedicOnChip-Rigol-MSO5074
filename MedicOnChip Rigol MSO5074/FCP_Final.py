@@ -18,13 +18,12 @@ mean=0
 config= configparser.ConfigParser()
 config.read("config.ini")
 gain_CURRENT=float(config.get('FCP','CURRENT_GAIN'))
-tensao_CURRENT=float(config.get('FCP','TENSAO_CORRENTE'))
+tensao_CURRENT=float(config.get('FCP','CURR_SOURCE_BIAS'))
 Freq_config=config.get('FCP','FREQ')
 NCycles_Config=config.get('FCP','CYCLES')
 Max_vds_expect_config=config.get('FCP','MAX_VDS_EXPECT')
 Bursts_config=config.get('FCP','BURSTS')
 AcquireAVG_Config=config.get('FCP','ACQUIRE_AVG')
-corrente=gain_CURRENT*tensao_CURRENT
 
 for path, directories,files  in os.walk(local):
     for arquivo in files:
@@ -54,6 +53,9 @@ for path, directories,files  in os.walk(local):
             #mean=mean+1
 
 medicao=pd.concat(Dataframe)
+
+corrente=(medicao["ID"].mean())*gain_CURRENT
+
 #SubidaResult=SubidaResult/mean
 #DescidaResult=DescidaResult/mean
 fig, ax=plt.subplots()

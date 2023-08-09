@@ -195,6 +195,8 @@
     <ClInclude Include="FCCParametersDlg.h" />
     <ClInclude Include="FCSParametersDlg.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GoNoGo.h" />
+    <ClInclude Include="GoNoGo_Confirm.h" />
     <ClInclude Include="Grafico.h" />
     <ClInclude Include="GraficoDeTempo.h" />
     <ClInclude Include="JanelaDoGrafico.h" />
@@ -209,6 +211,8 @@
   <ItemGroup>
     <ClCompile Include="FCCParametersDlg.cpp" />
     <ClCompile Include="FCSParametersDlg.cpp" />
+    <ClCompile Include="GoNoGo.cpp" />
+    <ClCompile Include="GoNoGo_Confirm.cpp" />
     <ClCompile Include="Grafico.cpp" />
     <ClCompile Include="GraficoDeTempo.cpp" />
     <ClCompile Include="JanelaDoGrafico.cpp" />

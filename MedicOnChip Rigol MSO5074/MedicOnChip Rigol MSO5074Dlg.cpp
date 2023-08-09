@@ -1326,7 +1326,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
-					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
+					vector <float> offsets = { 0,0,0 };
+					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path, offsets);
 
 					burst_count++;
 					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
@@ -1529,7 +1530,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 					std::string raw_data_path = path + "/raw_data" + std::to_string(burst_count) + ".dat";
 					path += "/results" + std::to_string(burst_count) + ".csv";
 					vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
-					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path);
+					vector <float> offsets = { results_fcs.vds_meas_params.offset,0,0 };
+					Measure_and_save(channels, BUCKET_SIZE_DEFAULT, raw_data_path, path, offsets);
 
 					burst_count++;
 					if (burst_count != num_bursts)	//Se for o ultimo burst do ultimo Vg, nao ligar os canais denovo
@@ -1693,7 +1695,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnTimer(UINT_PTR nIDEvent)
 				path = result_path + "results" + std::to_string(burst_count) + ".csv";
 				
 				vector <unsigned int> channels = { vds_meas.get_id(), current_meas.get_id(), vg_meas.get_id() };
-				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path, results_fcp.vds_meas_params.offset);
+				vector <float> offsets = {results_fcp.vds_meas_params.offset, results_fcp.current_meas_params.offset, results_fcp.vg_meas_params.offset };
+				Measure_and_save(channels, BUCKET_SIZE_FCP, raw_data_path, path, offsets);
 
 				if (flag_scale_set_status) {
 					burst_count++;
@@ -1815,7 +1818,7 @@ bool CMedicOnChipRigolMSO5074Dlg::iniciarAquisicao()
 	//Abre a comunica��o com o oscilosc�pio
 	if (VI_SUCCESS != viOpen(m_defaultRM, m_matches, VI_NULL, VI_NULL, &m_vi)) {
 		viClose(m_defaultRM);
-		AfxMessageBox(_T("Erro: Oscilosc�pio n�o encontrado"));
+		AfxMessageBox(_T("Erro: Osciloscopio nao encontrado"));
 		return false;
 	}
 
@@ -1851,7 +1854,7 @@ bool CMedicOnChipRigolMSO5074Dlg::encerrarAquisicao()
 	return true;
 }
 
-void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path,std::string mean_path, float offset) {
+void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& channels, unsigned int bucket_size, std::string raw_path,std::string mean_path, const std::vector <float>& offsets) {
 	ViByte* buf;		//unsigned char
 	buf = new ViByte[1000000];
 	ViUInt32 cnt = 1000000;
@@ -1957,13 +1960,13 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 			sinal_it = 0;
 			for (int i = 0; i < tam; i++) {
 
-				raw_signals[i][canal] = ((buf[2 + N + i] - 127) * deltaV) - offset;
+				raw_signals[i][canal] = ((buf[2 + N + i] - 127) * deltaV) - offsets[canal-1];
 
 				if (!flag_time) {
 					raw_signals[i][0] = Ts*i;
 				}
 				
-				soma += ((buf[2 + N + i] - 127) * deltaV) - offset;
+				soma += ((buf[2 + N + i] - 127) * deltaV) - offsets[canal - 1];
 				if (aux == bucket_size-1) {
 					media = soma / bucket_size;
 					if (sinal_it < tam / bucket_size) {
@@ -1992,7 +1995,7 @@ void CMedicOnChipRigolMSO5074Dlg::Measure_and_save(const vector <unsigned int>& 
 				aux++;
 			}
 
-			m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, (127 * deltaV) - offset);
+			m_pwndGraficoCanal[canal - 1].ajustaEscalas(tam * Ts, (127 * deltaV) - offsets[canal-1]);
 			m_pwndGraficoCanal[canal - 1].plotaGrafico(sinal, tam / bucket_size);
 			delete[] sinal;
 			flag_time = true;
@@ -3014,7 +3017,8 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonFcpAlt()
 								results_fcp.vg_source_params.v_pp = max - min;
 								trigger_parameters.level = max - results_fcp.vg_source_params.v_pp / 2;
 								results_fcp.vg_source_params.v_offset = max - results_fcp.vg_source_params.v_pp / 2;
-								results_fcp.vg_meas_params.volts_div = max / 4;
+								results_fcp.vg_meas_params.offset = -results_fcp.vg_source_params.v_offset;
+								results_fcp.vg_meas_params.volts_div = results_fcp.vg_source_params.v_pp / 7;
 
 								if (results_fcp.vg_source_params.v_pp < 0.001) {
 									UpdateData(TRUE);
@@ -3309,6 +3313,9 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 			m_bAquisicaoAtiva = true;
 			OnBnClickedButtonFcpAlt();
 		}
+		else {
+			
+		}
 
 		GetDlgItem(IDC_BUTTON_SEND_AND_READ)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_SEND)->EnableWindow(TRUE);
@@ -3319,7 +3326,25 @@ void CMedicOnChipRigolMSO5074Dlg::OnBnClickedButtonRunall()
 		GetDlgItem(IDC_BUTTON_FCP)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_FCP_Alt)->EnableWindow(TRUE);
 		GetDlgItem(IDC_BUTTON_RUNALL)->SetWindowText(_T("Run All"));
+
+		std::ofstream arquivo_passorfail(result_path + "pass_or_fail.txt");
+
+		if (m_GoNoGo.DoModal() == IDOK) {
+			arquivo_passorfail << "PASS" << "\n";
+		}
+		else {
+			if (m_GoNoGo_Confirm.DoModal() == IDOK) {
+				arquivo_passorfail << "FAIL" << "\n";
+			}
+			else {
+				arquivo_passorfail << "PASS" << "\n";
+			}
+		}
+
+		arquivo_passorfail.close();
+
 	}
+
 }
 
 void CMedicOnChipRigolMSO5074Dlg::OnBnClickedNewfcp()

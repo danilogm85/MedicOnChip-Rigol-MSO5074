@@ -54,6 +54,12 @@
     <ClInclude Include="SN_PROMPT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GoNoGo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GoNoGo_Confirm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MedicOnChip Rigol MSO5074.cpp">
@@ -84,6 +90,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SN_PROMPT.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GoNoGo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GoNoGo_Confirm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
